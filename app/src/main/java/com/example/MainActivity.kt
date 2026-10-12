@@ -760,6 +760,20 @@ fun SetupScreenView(
                             }
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                // Copy deck content button
+                                IconButton(onClick = {
+                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText(deck.title, deck.rawContent))
+                                    Toast.makeText(context, "Đã sao chép: ${deck.title}!", Toast.LENGTH_SHORT).show()
+                                }) {
+                                    Icon(
+                                        Icons.Default.ContentCopy,
+                                        contentDescription = "Sao chép bộ đề",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
                                 // Reassign folder button
                                 IconButton(onClick = { showFolderAssignDialogForDeck = deck }) {
                                     Icon(
@@ -840,11 +854,31 @@ fun SetupScreenView(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Paste & Clear buttons
+                    // Copy, Paste & Clear buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        Button(
+                            onClick = {
+                                if (viewModel.rawTextContent.value.isNotBlank()) {
+                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("LuyenDich", viewModel.rawTextContent.value))
+                                    Toast.makeText(context, "Đã sao chép vào bộ nhớ tạm!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Không có nội dung để sao chép", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.weight(1f).height(42.dp)
+                        ) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = "Sao chép", modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Sao chép", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                        }
+
                         Button(
                             onClick = {
                                 val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -857,24 +891,26 @@ fun SetupScreenView(
                                     Toast.makeText(context, "Bộ nhớ tạm trống", Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f).height(42.dp)
                         ) {
                             Icon(Icons.Default.ContentPaste, contentDescription = "Dán", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Dán văn bản", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Dán", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                         }
 
                         Button(
                             onClick = { viewModel.rawTextContent.value = "" },
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f), contentColor = MaterialTheme.colorScheme.onErrorContainer),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f).height(42.dp)
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = "Xóa", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Xóa tất cả", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Xóa", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                         }
                     }
                 }

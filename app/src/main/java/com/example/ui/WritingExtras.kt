@@ -21,18 +21,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.net.URL
 
-fun Modifier.tripleTap(onTriple: () -> Unit): Modifier = pointerInput(onTriple) {
-    var taps = 0; var last = 0L
-    detectTapGestures(onTap = {
-        val now = android.os.SystemClock.uptimeMillis()
-        taps = if (now - last < 400) taps + 1 else 1; last = now
-        if (taps == 3) { taps = 0; onTriple() }
-    })
+fun Modifier.tripleTap(onTriple: () -> Unit): Modifier = composed {
+    val currentOnTriple by rememberUpdatedState(onTriple)
+    pointerInput(Unit) {
+        var taps = 0
+        var last = 0L
+        detectTapGestures(onTap = {
+            val now = android.os.SystemClock.uptimeMillis()
+            taps = if (now - last < 600) taps + 1 else 1
+            last = now
+            if (taps == 3) {
+                taps = 0
+                currentOnTriple()
+            }
+        })
+    }
 }
 
 // Delay single/double actions until the triple-tap window ends, so selecting a row
@@ -72,26 +82,81 @@ class WritingOptions(context: Context) {
 }
 
 @Composable
-fun WritingSettings(o: WritingOptions, autoSpeak: Boolean, onSpeak: (Boolean) -> Unit,
-    running: Boolean, onRun: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(onDismissRequest = { o.save(); onDismiss() }, title = { Text("Cài đặt luyện viết") },
-        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
-            Row { Text("Tự đọc khi đổi chữ", Modifier.weight(1f)); Switch(autoSpeak, onSpeak) }
-            Text("Tự viết ngay • đọc trước khi viết")
-            listOf("Tiếng Trung", "Tiếng Việt", "Việt rồi Trung").forEachIndexed { i, label ->
-                Row { RadioButton(o.output == i, { o.output = i }); Text(label) }
+fun WritingSettings(
+    o: WritingOptions,
+    autoSpeak: Boolean,
+    onSpeak: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { o.save(); onDismiss() },
+        title = { Text("Cài đặt luyện viết", style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                ) {
+                    Text("Tự đọc khi đổi chữ", Modifier.weight(1f), fontSize = 14.sp)
+                    Switch(checked = autoSpeak, onCheckedChange = onSpeak)
+                }
+
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Đọc trước khi viết:",
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+                Spacer(Modifier.height(4.dp))
+                listOf("Tiếng Trung", "Tiếng Việt", "Việt rồi Trung").forEachIndexed { i, label ->
+                    Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(38.dp)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                            .clickable { o.output = i }
+                            .padding(horizontal = 4.dp)
+                    ) {
+                        RadioButton(
+                            selected = o.output == i,
+                            onClick = { o.output = i },
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(label, fontSize = 14.sp)
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                ) {
+                    Text("Làm mờ theo ngôn ngữ đang đọc", Modifier.weight(1f), fontSize = 14.sp)
+                    Switch(checked = o.autoHide, onCheckedChange = { o.autoHide = it })
+                }
+
+                Spacer(Modifier.height(6.dp))
+                Text("Số lần đọc mỗi ngôn ngữ: ${o.readCount}", fontSize = 13.sp)
+                Slider(o.readCount.toFloat(), { o.readCount = it.toInt() }, valueRange = 1f..10f, steps = 8)
+
+                Text("Tốc độ đọc: %.1fx".format(o.readSpeed), fontSize = 13.sp)
+                Slider(o.readSpeed, { o.readSpeed = it }, valueRange = 0.5f..2f)
+
+                Text("Số lần viết mỗi chữ: ${o.writeCount}", fontSize = 13.sp)
+                Slider(o.writeCount.toFloat(), { o.writeCount = it.toInt() }, valueRange = 1f..10f, steps = 8)
+
+                Text("Tốc độ viết: %.1fx".format(o.writeSpeed), fontSize = 13.sp)
+                Slider(o.writeSpeed, { o.writeSpeed = it }, valueRange = 0.5f..3f)
             }
-            Row { Text("Làm mờ theo ngôn ngữ đang đọc", Modifier.weight(1f)); Switch(o.autoHide, { o.autoHide = it }) }
-            Text("Số lần đọc mỗi ngôn ngữ: ${o.readCount}")
-            Slider(o.readCount.toFloat(), { o.readCount = it.toInt() }, valueRange = 1f..10f, steps = 8)
-            Text("Tốc độ đọc: %.1fx".format(o.readSpeed))
-            Slider(o.readSpeed, { o.readSpeed = it }, valueRange = 0.5f..2f)
-            Text("Số lần viết mỗi chữ: ${o.writeCount}")
-            Slider(o.writeCount.toFloat(), { o.writeCount = it.toInt() }, valueRange = 1f..10f, steps = 8)
-            Text("Tốc độ viết: %.1fx".format(o.writeSpeed))
-            Slider(o.writeSpeed, { o.writeSpeed = it }, valueRange = 0.5f..3f)
-        } }, confirmButton = { Button(onClick = { o.save(); onRun() }) { Text(if (running) "Dừng tự viết" else "Tự viết ngay") } },
-        dismissButton = { TextButton(onClick = { o.save(); onDismiss() }) { Text("Xong") } })
+        },
+        confirmButton = {
+            Button(onClick = { o.save(); onDismiss() }) {
+                Text("Xong")
+            }
+        }
+    )
 }
 
 @Composable

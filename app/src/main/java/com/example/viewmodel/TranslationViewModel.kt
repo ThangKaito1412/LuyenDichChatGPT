@@ -75,7 +75,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     // Writing practice (Tập viết chữ Hán)
     val writingFreeMode = mutableStateOf(false)
     val writingSpeed = mutableStateOf(1.5f)
-    // Làm mờ chữ Hán đang hiển thị khi Viết tự do (0 = hiện tất cả, 1 = che mờ chữ Hán, 2 = che cả chữ Hán lẫn phiên âm [] và nghĩa)
+    // Làm mờ khi Viết tự do (0 = tắt làm mờ / hiện cả chữ Hán & Tiếng Việt, 1 = mờ chữ Hán, 2 = che Tiếng Việt/phiên âm & nghĩa, 3 = che cả hai)
     val writingBlurMode = mutableStateOf(1)
     val writingBlur = mutableStateOf(true)
     // Tự động đọc chữ Hán khi chuyển từ/chữ trong Luyện Viết
@@ -834,8 +834,8 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun saveWritingPrefs() {
-        writingBlurMode.value = writingBlurMode.value.coerceIn(1, 3)
-        writingBlur.value = true
+        writingBlurMode.value = writingBlurMode.value.coerceIn(0, 3)
+        writingBlur.value = (writingBlurMode.value > 0)
         getApplication<Application>().getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE).edit()
             .putBoolean("writing_free", writingFreeMode.value)
             .putInt("writing_blur_mode", writingBlurMode.value)
@@ -1022,8 +1022,8 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         autoSpeed.value = sharedPrefs.getFloat("autoSpeed", 1f).coerceIn(MIN_AUTO_SPEED, MAX_AUTO_SPEED)
         writingFreeMode.value = sharedPrefs.getBoolean("writing_free", false)
         writingBlurMode.value = sharedPrefs.getInt("writing_blur_mode", if (sharedPrefs.getBoolean("writing_blur", true)) 1 else 0)
-        writingBlurMode.value = writingBlurMode.value.coerceIn(1, 3)
-        writingBlur.value = true
+        writingBlurMode.value = writingBlurMode.value.coerceIn(0, 3)
+        writingBlur.value = (writingBlurMode.value > 0)
         writingAutoSpeak.value = sharedPrefs.getBoolean("writing_autospeak", true)
         answerCardHeight.value = sharedPrefs.getFloat("answer_card_height", 220f).coerceIn(150f, 620f)
         writingSpeed.value = sharedPrefs.getFloat("writing_speed", 1.5f).coerceIn(0.5f, 3f)

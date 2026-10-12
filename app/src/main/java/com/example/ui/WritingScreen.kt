@@ -1133,8 +1133,36 @@ fun WritingScreen(viewModel: TranslationViewModel) {
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val currentWordInfo = wordInfo
+                        ?: deckWords.firstOrNull { it.hanzi == word }
+                        ?: allDeckWords.firstOrNull { it.hanzi == word }
+                        ?: StudyWord(hanzi = word, pinyin = "", meaning = word, rawVi = word, rawForeign = word)
+
+                    val isCurrentStarred = remember(currentWordInfo, starredPairs, word) {
+                        val vi = currentWordInfo.rawVi.trim().lowercase()
+                        val foreign = currentWordInfo.rawForeign.trim().lowercase()
+                        starredPairs.any {
+                            it.vi.trim().lowercase() == vi && it.foreign.trim().lowercase() == foreign
+                        }
+                    }
+
+                    fun toggleStarCurrent() {
+                        val vi = currentWordInfo.rawVi.ifBlank { word }
+                        val foreign = currentWordInfo.rawForeign.ifBlank { word }
+                        viewModel.toggleStar(vi, foreign, "zh")
+                        val willBeStarred = !isCurrentStarred
+                        android.widget.Toast.makeText(
+                            context,
+                            if (willBeStarred) "⭐ Đã đánh dấu sao" else "Đã bỏ đánh dấu sao",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
                     Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.tripleTap { toggleStarCurrent() }
+                        ) {
                             HanziText(
                                 blurred = blurChars,
                                 text = word.ifBlank { "…" },
@@ -1143,12 +1171,14 @@ fun WritingScreen(viewModel: TranslationViewModel) {
                                 color = colors.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false).tripleTap {
-                                    wordInfo?.let { viewModel.toggleStar(it.rawVi, it.rawForeign, "zh") }
-                                }
+                                modifier = Modifier.weight(1f, fill = false)
                             )
-                            IconButton(onClick = { wordInfo?.let { viewModel.toggleStar(it.rawVi, it.rawForeign, "zh") } }) {
-                                Icon(if (starredPairs.any { it.vi == wordInfo?.rawVi && it.foreign == wordInfo?.rawForeign }) Icons.Default.Star else Icons.Default.StarBorder, "Đánh sao từ hiện tại")
+                            IconButton(onClick = { toggleStarCurrent() }) {
+                                Icon(
+                                    imageVector = if (isCurrentStarred) Icons.Default.Star else Icons.Default.StarBorder,
+                                    contentDescription = "Đánh sao từ hiện tại",
+                                    tint = if (isCurrentStarred) Color(0xFFFFD700) else colors.onSurface.copy(alpha = 0.6f)
+                                )
                             }
                             Spacer(Modifier.width(8.dp))
                             Box(
@@ -1163,8 +1193,8 @@ fun WritingScreen(viewModel: TranslationViewModel) {
                             }
                         }
                         val sub = buildString {
-                            if (!wordInfo?.pinyin.isNullOrBlank()) append("[${wordInfo!!.pinyin}]  ")
-                            if (!wordInfo?.meaning.isNullOrBlank()) append(wordInfo!!.meaning)
+                            if (!currentWordInfo.pinyin.isBlank()) append("[${currentWordInfo.pinyin}]  ")
+                            if (!currentWordInfo.meaning.isBlank()) append(currentWordInfo.meaning)
                         }
                         if (hideSub) {
                             Text(
@@ -1183,24 +1213,44 @@ fun WritingScreen(viewModel: TranslationViewModel) {
                             )
                         }
                     }
-                    Column {
-                        RoundIconButton(Icons.Default.Add, "Mẹo nhớ cá nhân") { showTip = true }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(end = 10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(colors.surfaceVariant.copy(alpha = 0.7f))
+                                .clickable { showTip = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Mẹo nhớ cá nhân",
+                                tint = colors.onSurface,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                         val icon = if (blurMode == 0) Icons.Default.Visibility else Icons.Default.VisibilityOff
                         val tint = when (blurMode) {
                             1 -> colors.primary
                             2 -> Color(0xFFFF6B6B)
+                            3 -> Color(0xFFFF9800)
                             else -> colors.onSurface
                         }
                         val bg = when (blurMode) {
                             1 -> colors.primary.copy(alpha = 0.16f)
                             2 -> Color(0xFFFF6B6B).copy(alpha = 0.16f)
+                            3 -> Color(0xFFFF9800).copy(alpha = 0.16f)
                             else -> colors.surfaceVariant.copy(alpha = 0.7f)
                         }
                         val desc = when (blurMode) {
-                            1 -> "Đang mờ chữ Hán (Chạm để che phiên âm & nghĩa, hiện chữ Hán)"
-                            2 -> "Đang che phiên âm & nghĩa (Chạm để che cả hai)"
-                            3 -> "Đang che cả hai (Chạm để che chữ Hán)"
-                            else -> "Đang hiện tất cả (Chạm để mờ chữ Hán)"
+                            1 -> "Đang mờ chữ Hán (Chạm để che phiên âm & nghĩa Tiếng Việt)"
+                            2 -> "Đang che phiên âm & nghĩa Tiếng Việt (Chạm để che cả hai)"
+                            3 -> "Đang che cả hai (Chạm để tắt làm mờ, hiện cả hai không mờ)"
+                            else -> "Đang tắt làm mờ: hiện cả chữ Hán & Tiếng Việt (Chạm để mờ chữ Hán)"
                         }
                         Box(
                             modifier = Modifier
@@ -1208,7 +1258,7 @@ fun WritingScreen(viewModel: TranslationViewModel) {
                                 .clip(CircleShape)
                                 .background(bg)
                                 .clickable {
-                                    val next = if (blurMode >= 3) 1 else blurMode + 1
+                                    val next = if (blurMode >= 3) 0 else blurMode + 1
                                     viewModel.writingBlurMode.value = next
                                     viewModel.writingBlur.value = (next > 0)
                                     viewModel.saveWritingPrefs()
@@ -1222,7 +1272,6 @@ fun WritingScreen(viewModel: TranslationViewModel) {
                                 modifier = Modifier.size(20.dp)
                             )
                         }
-                        Spacer(Modifier.width(10.dp))
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Viết tự do", fontSize = 12.sp, fontWeight = FontWeight.Medium)
@@ -1443,45 +1492,71 @@ fun WritingScreen(viewModel: TranslationViewModel) {
             val position = deckWords.indexOfFirst { it.hanzi == word }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedButton(
                     onClick = { prevChar() },
                     enabled = deckWords.isNotEmpty() || charIndex > 0,
-                    shape = RoundedCornerShape(26.dp),
-                    modifier = Modifier.weight(1f).height(52.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
+                    shape = RoundedCornerShape(22.dp),
+                    modifier = Modifier.weight(0.9f).height(48.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    Icon(Icons.Default.KeyboardArrowLeft, contentDescription = null)
-                    Text("Trước", fontWeight = FontWeight.SemiBold)
+                    Icon(Icons.Default.KeyboardArrowLeft, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text("Trước", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Button(
                     onClick = { showPicker = true },
-                    shape = RoundedCornerShape(26.dp),
+                    shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colors.primaryContainer,
                         contentColor = colors.onPrimaryContainer
                     ),
-                    modifier = Modifier.weight(1.15f).height(52.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
+                    modifier = Modifier.weight(1.05f).height(48.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    Icon(Icons.Default.ViewList, contentDescription = "Danh sách", modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(6.dp))
+                    Icon(Icons.Default.ViewList, contentDescription = "Danh sách", modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
                     Text(
                         if (position >= 0) "${position + 1}/${deckWords.size}" else "Danh sách",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Button(
+                    onClick = {
+                        autoWriting = !autoWriting
+                        boardKey++
+                    },
+                    shape = RoundedCornerShape(22.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (autoWriting) Color(0xFFFF5252) else colors.primary,
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.weight(1.05f).height(48.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) {
+                    Icon(
+                        if (autoWriting) Icons.Default.Close else Icons.Default.PlayArrow,
+                        contentDescription = if (autoWriting) "Dừng tự viết" else "Tự viết",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        if (autoWriting) "Dừng" else "Tự viết",
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 Button(
                     onClick = { nextChar() },
                     enabled = deckWords.isNotEmpty() || charIndex < chars.size - 1,
-                    shape = RoundedCornerShape(26.dp),
-                    modifier = Modifier.weight(1f).height(52.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
+                    shape = RoundedCornerShape(22.dp),
+                    modifier = Modifier.weight(0.9f).height(48.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    Text("Sau", fontWeight = FontWeight.SemiBold)
-                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                    Text("Sau", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -1499,9 +1574,12 @@ fun WritingScreen(viewModel: TranslationViewModel) {
         )
     }
 
-    if (showSettings) WritingSettings(options, viewModel.writingAutoSpeak.value,
-        { viewModel.writingAutoSpeak.value = it; viewModel.saveWritingPrefs() }, autoWriting,
-        { autoWriting = !autoWriting; boardKey++; showSettings = false }, { showSettings = false })
+    if (showSettings) WritingSettings(
+        o = options,
+        autoSpeak = viewModel.writingAutoSpeak.value,
+        onSpeak = { viewModel.writingAutoSpeak.value = it; viewModel.saveWritingPrefs() },
+        onDismiss = { showSettings = false }
+    )
     if (showTip) MemoryTipDialog(word, { showTip = false })
 
     if (showPicker) {

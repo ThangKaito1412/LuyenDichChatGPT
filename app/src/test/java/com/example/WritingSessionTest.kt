@@ -43,4 +43,41 @@ class WritingSessionTest {
         assertEquals(16, vm.currentIndex.value)
         assertEquals(order, vm.practicePairs.value)
     }
+
+    @Test fun blurModeSupportsFourStatesAndPersistsOffState() {
+        val vm = TranslationViewModel(ApplicationProvider.getApplicationContext<Application>())
+        // Start at 1 (mờ chữ Hán)
+        vm.writingBlurMode.value = 1
+        vm.saveWritingPrefs()
+        assertEquals(1, vm.writingBlurMode.value)
+        assertTrue(vm.writingBlur.value)
+
+        // 1st press -> 2 (mờ tiếng Việt / pinyin & nghĩa)
+        var next = if (vm.writingBlurMode.value >= 3) 0 else vm.writingBlurMode.value + 1
+        vm.writingBlurMode.value = next
+        vm.saveWritingPrefs()
+        assertEquals(2, vm.writingBlurMode.value)
+        assertTrue(vm.writingBlur.value)
+
+        // 2nd press -> 3 (mờ cả hai)
+        next = if (vm.writingBlurMode.value >= 3) 0 else vm.writingBlurMode.value + 1
+        vm.writingBlurMode.value = next
+        vm.saveWritingPrefs()
+        assertEquals(3, vm.writingBlurMode.value)
+        assertTrue(vm.writingBlur.value)
+
+        // 3rd press / 4th step in cycle -> 0 (tắt làm mờ, hiện cả hai không mờ)
+        next = if (vm.writingBlurMode.value >= 3) 0 else vm.writingBlurMode.value + 1
+        vm.writingBlurMode.value = next
+        vm.saveWritingPrefs()
+        assertEquals(0, vm.writingBlurMode.value)
+        assertFalse(vm.writingBlur.value)
+
+        // Next press -> 1 (mờ chữ Hán trở lại)
+        next = if (vm.writingBlurMode.value >= 3) 0 else vm.writingBlurMode.value + 1
+        vm.writingBlurMode.value = next
+        vm.saveWritingPrefs()
+        assertEquals(1, vm.writingBlurMode.value)
+        assertTrue(vm.writingBlur.value)
+    }
 }
