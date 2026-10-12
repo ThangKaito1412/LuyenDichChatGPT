@@ -1,0 +1,6 @@
+{
+  "name": "Luyện Dịch",
+  "description": "Ứng dụng luyện dịch song ngữ hữu ích giúp nâng cao vốn từ vựng và tư duy dịch thuật qua việc gõ dịch và luyện phản xạ nói.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
