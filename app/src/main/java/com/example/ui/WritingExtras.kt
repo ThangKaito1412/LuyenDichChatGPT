@@ -163,49 +163,262 @@ fun WritingSettings(
 fun MemoryTipDialog(word: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("MemoryTips", Context.MODE_PRIVATE) }
-    var note by remember(word) { mutableStateOf(prefs.getString("$word.text", "").orEmpty()) }
-    var picture by remember(word) { mutableStateOf(prefs.getString("$word.image", "").orEmpty()) }
-    val lines = remember(word) { mutableStateListOf<List<Offset>>().apply {
-        runCatching { val a = JSONArray(prefs.getString("$word.ink", "[]")); for (i in 0 until a.length()) {
-            val stroke = a.getJSONArray(i); add((0 until stroke.length()).map { j -> val p = stroke.getJSONArray(j); Offset(p.getDouble(0).toFloat(), p.getDouble(1).toFloat()) })
-        } }
-    } }
-    val live = remember { mutableStateListOf<Offset>() }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) { runCatching { context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) }; picture = uri.toString() }
-    }
-    var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
-    LaunchedEffect(picture) {
-        bitmap = withContext(Dispatchers.IO) { runCatching {
-            if (picture.startsWith("content:")) context.contentResolver.openInputStream(android.net.Uri.parse(picture))?.use { BitmapFactory.decodeStream(it) }
-            else if (picture.startsWith("https://")) {
-                val connection = URL(picture).openConnection().apply { connectTimeout = 8000; readTimeout = 8000 }
-                connection.getInputStream().use { BitmapFactory.decodeStream(it) }
-            } else null
-        }.getOrNull() }
-    }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Mẹo nhớ cá nhân") }, text = {
-        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(note, { note = it }, label = { Text("Nội dung / câu chuyện ghi nhớ") })
-            OutlinedTextField(picture, { picture = it }, label = { Text("Link ảnh HTTPS") })
-            TextButton(onClick = { picker.launch(arrayOf("image/*")) }) { Text("Chèn hình ảnh từ máy") }
-            bitmap?.let { Image(it.asImageBitmap(), "Ảnh mẹo nhớ", Modifier.fillMaxWidth().heightIn(max = 180.dp)) }
-            if (picture.isNotBlank() && bitmap == null) Text("Chưa tải được ảnh. Kiểm tra link hoặc chọn ảnh từ máy.")
-            Text("Viết tay để ghi nhớ")
-            Canvas(Modifier.fillMaxWidth().height(170.dp).background(Color(0xFFF0F0F0)).pointerInput(Unit) {
-                detectDragGestures(onDragStart = { live.clear(); live.add(Offset(it.x / size.width, it.y / size.height)) },
-                    onDragEnd = { lines.add(live.toList()); live.clear() }, onDragCancel = { live.clear() }) { change, _ ->
-                    change.consume(); live.add(Offset(change.position.x / size.width, change.position.y / size.height))
-                }
-            }) {
-                (lines.toList() + listOf(live.toList())).forEach { stroke -> stroke.zipWithNext().forEach { (a,b) ->
-                    drawLine(Color.Black, Offset(a.x * size.width, a.y * size.height), Offset(b.x * size.width, b.y * size.height), 4f)
-                } }
-            }
-            TextButton(onClick = { lines.clear(); live.clear() }) { Text("Xóa nét viết tay") }
+    val writingStatePrefs = remember { context.getSharedPreferences("WritingStatePrefs", Context.MODE_PRIVATE) }
+
+    // Khóa cứng từ vựng đang mở mẹo nhớ để khi mở trình chọn tệp (nhiều tab làm hệ thống khởi tạo lại)
+    // đường dẫn ảnh luôn lưu đúng vào từ này, tuyệt đối không bị nhảy sang từ khác.
+    val lockedWord = remember {
+        val initial = word.trim().ifBlank {
+            writingStatePrefs.getString("locked_tip_word", "")?.trim().orEmpty()
         }
-    }, confirmButton = { Button(onClick = {
-        val ink = JSONArray(); lines.forEach { line -> val stroke = JSONArray(); line.forEach { stroke.put(JSONArray().put(it.x.toDouble()).put(it.y.toDouble())) }; ink.put(stroke) }
-        prefs.edit().putString("$word.text", note).putString("$word.image", picture).putString("$word.ink", ink.toString()).apply(); onDismiss()
-    }) { Text("Lưu mẹo") } }, dismissButton = { TextButton(onClick = onDismiss) { Text("Đóng") } })
+        if (initial.isNotBlank()) {
+            writingStatePrefs.edit()
+                .putString("locked_tip_word", initial)
+                .putBoolean("tip_dialog_open", true)
+                .apply()
+        }
+        initial
+    }
+
+    var note by remember(lockedWord) { mutableStateOf(prefs.getString("$lockedWord.text", "").orEmpty()) }
+    var picture by remember(lockedWord) { mutableStateOf(prefs.getString("$lockedWord.image", "").orEmpty()) }
+    val lines = remember(lockedWord) {
+        mutableStateListOf<List<Offset>>().apply {
+            runCatching {
+                val a = JSONArray(prefs.getString("$lockedWord.ink", "[]"))
+                for (i in 0 until a.length()) {
+                    val stroke = a.getJSONArray(i)
+                    add((0 until stroke.length()).map { j ->
+                        val p = stroke.getJSONArray(j)
+                        Offset(p.getDouble(0).toFloat(), p.getDouble(1).toFloat())
+                    })
+                }
+            }
+        }
+    }
+    val live = remember { mutableStateListOf<Offset>() }
+
+    fun persistCurrentTipState(updatedPicture: String = picture, updatedNote: String = note) {
+        if (lockedWord.isBlank()) return
+        val ink = JSONArray()
+        lines.forEach { line ->
+            val stroke = JSONArray()
+            line.forEach { stroke.put(JSONArray().put(it.x.toDouble()).put(it.y.toDouble())) }
+            ink.put(stroke)
+        }
+        prefs.edit()
+            .putString("$lockedWord.text", updatedNote)
+            .putString("$lockedWord.image", updatedPicture)
+            .putString("$lockedWord.ink", ink.toString())
+            .apply()
+    }
+
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null && lockedWord.isNotBlank()) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            // Sao chép ngay ảnh đã chọn vào bộ nhớ cục bộ của ứng dụng để lấy đường dẫn máy cố định
+            // và lưu tức thì vào đúng từ lockedWord (tránh mất ảnh hoặc lưu nhầm từ khi máy chạy nhiều tab)
+            val copiedLocalPath = runCatching {
+                val dir = java.io.File(context.filesDir, "memory_tip_images").apply { mkdirs() }
+                val safeKey = lockedWord.hashCode().toUInt().toString(16)
+                val destFile = java.io.File(dir, "tip_${safeKey}_${System.currentTimeMillis()}.jpg")
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    destFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                if (destFile.exists() && destFile.length() > 0L) destFile.absolutePath else null
+            }.getOrNull()
+
+            val finalPath = copiedLocalPath ?: uri.toString()
+            picture = finalPath
+            persistCurrentTipState(updatedPicture = finalPath, updatedNote = note)
+        }
+    }
+
+    var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(picture, lockedWord) {
+        val currentPic = picture.trim()
+        bitmap = withContext(Dispatchers.IO) {
+            runCatching {
+                when {
+                    currentPic.isEmpty() -> null
+                    currentPic.startsWith("/") -> {
+                        val f = java.io.File(currentPic)
+                        if (f.exists()) BitmapFactory.decodeFile(f.absolutePath) else null
+                    }
+                    currentPic.startsWith("file://") -> {
+                        val path = android.net.Uri.parse(currentPic).path.orEmpty()
+                        val f = java.io.File(path)
+                        if (f.exists()) BitmapFactory.decodeFile(f.absolutePath) else null
+                    }
+                    currentPic.startsWith("content:") -> {
+                        context.contentResolver.openInputStream(android.net.Uri.parse(currentPic))
+                            ?.use { BitmapFactory.decodeStream(it) }
+                    }
+                    currentPic.startsWith("http://") || currentPic.startsWith("https://") -> {
+                        val connection = URL(currentPic).openConnection().apply {
+                            connectTimeout = 8000
+                            readTimeout = 8000
+                        }
+                        connection.getInputStream().use { BitmapFactory.decodeStream(it) }
+                    }
+                    else -> {
+                        val f = java.io.File(currentPic)
+                        if (f.exists()) BitmapFactory.decodeFile(f.absolutePath) else null
+                    }
+                }
+            }.getOrNull()
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = {
+            persistCurrentTipState()
+            writingStatePrefs.edit().putBoolean("tip_dialog_open", false).apply()
+            onDismiss()
+        },
+        title = {
+            Column {
+                Text("Mẹo nhớ cá nhân: $lockedWord", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text(
+                    "Đường dẫn ảnh cục bộ được khóa cố định cho từ \"$lockedWord\"",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
+        text = {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = {
+                        note = it
+                        prefs.edit().putString("$lockedWord.text", it).apply()
+                    },
+                    label = { Text("Nội dung / câu chuyện ghi nhớ") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = picture,
+                    onValueChange = {
+                        picture = it
+                        prefs.edit().putString("$lockedWord.image", it).apply()
+                    },
+                    label = { Text("Đường dẫn ảnh cục bộ tại máy hoặc Link ảnh HTTPS") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            writingStatePrefs.edit()
+                                .putString("locked_tip_word", lockedWord)
+                                .putString("current_word", lockedWord)
+                                .putBoolean("tip_dialog_open", true)
+                                .apply()
+                            persistCurrentTipState()
+                            picker.launch(arrayOf("image/*"))
+                        }
+                    ) {
+                        Text("📂 Chọn hình ảnh từ máy")
+                    }
+                    if (picture.isNotBlank()) {
+                        TextButton(
+                            onClick = {
+                                picture = ""
+                                bitmap = null
+                                prefs.edit().remove("$lockedWord.image").apply()
+                            }
+                        ) {
+                            Text("Xóa ảnh")
+                        }
+                    }
+                }
+                bitmap?.let {
+                    Image(
+                        it.asImageBitmap(),
+                        "Ảnh mẹo nhớ",
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 190.dp)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                    )
+                }
+                if (picture.isNotBlank() && bitmap == null) {
+                    Text(
+                        "Chưa tải được ảnh. Kiểm tra đường dẫn máy hoặc chọn lại ảnh từ thư mục máy.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                Text("Viết tay để ghi nhớ")
+                Canvas(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(170.dp)
+                        .background(Color(0xFFF0F0F0))
+                        .pointerInput(lockedWord) {
+                            detectDragGestures(
+                                onDragStart = {
+                                    live.clear()
+                                    live.add(Offset(it.x / size.width, it.y / size.height))
+                                },
+                                onDragEnd = {
+                                    lines.add(live.toList())
+                                    live.clear()
+                                    persistCurrentTipState()
+                                },
+                                onDragCancel = { live.clear() }
+                            ) { change, _ ->
+                                change.consume()
+                                live.add(Offset(change.position.x / size.width, change.position.y / size.height))
+                            }
+                        }
+                ) {
+                    (lines.toList() + listOf(live.toList())).forEach { stroke ->
+                        stroke.zipWithNext().forEach { (a, b) ->
+                            drawLine(
+                                Color.Black,
+                                Offset(a.x * size.width, a.y * size.height),
+                                Offset(b.x * size.width, b.y * size.height),
+                                4f
+                            )
+                        }
+                    }
+                }
+                TextButton(onClick = {
+                    lines.clear()
+                    live.clear()
+                    persistCurrentTipState()
+                }) {
+                    Text("Xóa nét viết tay")
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                persistCurrentTipState()
+                writingStatePrefs.edit().putBoolean("tip_dialog_open", false).apply()
+                onDismiss()
+            }) {
+                Text("Lưu mẹo")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                writingStatePrefs.edit().putBoolean("tip_dialog_open", false).apply()
+                onDismiss()
+            }) {
+                Text("Đóng")
+            }
+        }
+    )
 }

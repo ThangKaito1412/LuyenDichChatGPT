@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -483,7 +484,7 @@ fun SetupScreenView(
     var studySetToEditVocab by remember { mutableStateOf<StudySet?>(null) }
     var showEditCurrentRawVocab by remember { mutableStateOf(false) }
     var homeWebViewUrl by remember { mutableStateOf<String?>(null) }
-    var showLiveVoiceTranslatorDialog by remember { mutableStateOf(false) }
+    var showSavedAndTaggedHubDialog by remember { mutableStateOf(false) }
     var showQuickDualSaveDialog by remember { mutableStateOf(false) }
     var showImageOcrDialog by remember { mutableStateOf(false) }
     var showStudyCountDialogFromHome by remember { mutableStateOf(false) }
@@ -526,7 +527,7 @@ fun SetupScreenView(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Từ điển trực quan • Dịch nói 2 chiều • Sách & HSK",
+                            text = "Từ điển trực quan • Học cụm từ gốc • Tra cứu Online & Sách HSK",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
@@ -585,13 +586,14 @@ fun SetupScreenView(
                 }
             }
 
-            // Global Vocabulary Search Bar (Hanzi, Vietnamese, Unaccented Pinyin, 2-way Sentence Translation, Voice & Camera/Photo OCR)
+            // Global Vocabulary Search Bar (Hanzi, Vietnamese, Unaccented Pinyin, Online 2-way Sentence Translation, & Camera/Photo OCR)
             item {
                 GlobalVocabularySearchBar(
                     searchQuery = globalSearchQuery,
                     onSearchQueryChange = { globalSearchQuery = it },
                     studySets = studySets,
                     folders = folders,
+                    viewModel = viewModel,
                     onSelectStudySet = { deck, startImmediately ->
                         viewModel.rawTextContent.value = deck.rawContent
                         viewModel.targetLanguage.value = deck.language
@@ -618,11 +620,11 @@ fun SetupScreenView(
                     onRequestMultiFolderSave = { vi, foreign ->
                         multiFolderSaveTarget = vi to foreign
                     },
-                    onOpenVoiceSearch = {
-                        showLiveVoiceTranslatorDialog = true
-                    },
                     onOpenCameraOrPhotoOcr = {
                         showImageOcrDialog = true
+                    },
+                    onOpenWebUrl = { url ->
+                        homeWebViewUrl = url
                     }
                 )
             }
@@ -636,7 +638,7 @@ fun SetupScreenView(
                     isPassiveActive = viewModel.isLockscreenEnabled.value || viewModel.isPassiveNotifEnabled.value,
                     isQuizletEnabled = viewModel.quizletSortingEnabled.value,
                     onOpenQuickLookup = { showQuickLookupDialog = true },
-                    onOpenLiveVoiceTranslator = { showLiveVoiceTranslatorDialog = true },
+                    onOpenSavedAndTaggedHub = { showSavedAndTaggedHubDialog = true },
                     onOpenQuickDualSave = { showQuickDualSaveDialog = true },
                     onOpenImageTranslator = { showImageOcrDialog = true },
                     onOpenPassiveSettings = { showPassiveStudyDialog = true },
@@ -916,6 +918,21 @@ fun SetupScreenView(
                 }
             }
 
+            // Outside Word List with 1-Tap Star Toggle (Đánh sao ở ngoài trang học tập với danh sách ở ngoài)
+            item {
+                OutsideDeckWordListCard(
+                    deckTitle = viewModel.deckTitle.value,
+                    rawContent = viewModel.rawTextContent.value,
+                    viewModel = viewModel,
+                    onOpenVisualVocabDetail = { entry, siblings ->
+                        visualDetailTarget = entry to siblings
+                    },
+                    onRequestMultiFolderSave = { vi, foreign ->
+                        multiFolderSaveTarget = vi to foreign
+                    }
+                )
+            }
+
             // Preset Quick Loads
             item {
                 Card(
@@ -1138,6 +1155,7 @@ fun SetupScreenView(
     if (showQuickLookupDialog) {
         QuickTranslationLookupDialog(
             studySets = studySets,
+            viewModel = viewModel,
             onDismiss = { showQuickLookupDialog = false },
             onSpeak = { text, lang -> viewModel.speakText(text, lang) },
             onAddWordToCurrent = { vi, hanzi, pinyin ->
@@ -1157,10 +1175,6 @@ fun SetupScreenView(
             onRequestMultiFolderSave = { vi, foreign ->
                 multiFolderSaveTarget = vi to foreign
             },
-            onOpenVoiceTranslator = {
-                showQuickLookupDialog = false
-                showLiveVoiceTranslatorDialog = true
-            },
             onOpenCameraOcr = {
                 showQuickLookupDialog = false
                 showImageOcrDialog = true
@@ -1168,11 +1182,14 @@ fun SetupScreenView(
         )
     }
 
-    if (showLiveVoiceTranslatorDialog) {
-        LiveTwoWayVoiceTranslatorDialog(
+    if (showSavedAndTaggedHubDialog) {
+        SavedAndTaggedWordsManagerDialog(
             viewModel = viewModel,
-            studySets = studySets,
-            onDismiss = { showLiveVoiceTranslatorDialog = false },
+            onDismiss = { showSavedAndTaggedHubDialog = false },
+            onOpenVisualVocabDetail = { entry, siblings ->
+                showSavedAndTaggedHubDialog = false
+                visualDetailTarget = entry to siblings
+            },
             onRequestMultiFolderSave = { vi, foreign ->
                 multiFolderSaveTarget = vi to foreign
             }
@@ -1349,7 +1366,23 @@ fun SetupScreenView(
                     AndroidView(
                         factory = { ctx ->
                             WebView(ctx).apply {
-                                webViewClient = WebViewClient()
+                                webViewClient = object : WebViewClient() {
+                                    override fun onPageFinished(view: WebView?, url: String?) {
+                                        super.onPageFinished(view, url)
+                                        if (url != null && url.contains("hanzii.net")) {
+                                            view?.evaluateJavascript(
+                                                """
+                                                (function() {
+                                                    var style = document.createElement('style');
+                                                    style.innerHTML = 'em, .hl, .txt-hl, .highlight, .cl-red, span.red, b.hl { color: #E11D48 !important; font-weight: 800 !important; }';
+                                                    document.head.appendChild(style);
+                                                })();
+                                                """.trimIndent(),
+                                                null
+                                            )
+                                        }
+                                    }
+                                }
                                 webChromeClient = WebChromeClient()
                                 settings.javaScriptEnabled = true
                                 settings.domStorageEnabled = true
@@ -2275,6 +2308,11 @@ fun PracticeScreenView(
         }
 
         // Large Flashcard sliding, Swiping and Double-Tap area (Dynamic size to prevent card squeezing)
+        val animatedDragX by animateFloatAsState(
+            targetValue = if (isQuizletSorting) dragAmountX else 0f,
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            label = "quizletCardDragX"
+        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -2283,7 +2321,19 @@ fun PracticeScreenView(
             AnimatedContent(
                 targetState = currentIndex,
                 transitionSpec = {
-                    if (targetState > initialState) {
+                    val quizletDir = viewModel.lastQuizletSwipeDir.value
+                    if (isQuizletSorting && quizletDir != 0) {
+                        // Quizlet horizontal swipe animation:
+                        // quizletDir == -1 (swipe left -> Chưa nhớ): old card exits left, new card enters from right
+                        // quizletDir == +1 (swipe right -> Đã nhớ): old card exits right, new card enters from left
+                        if (quizletDir < 0) {
+                            (slideInHorizontally(tween(340, easing = FastOutSlowInEasing)) { width -> width } + fadeIn(tween(260)))
+                                .togetherWith(slideOutHorizontally(tween(340, easing = FastOutSlowInEasing)) { width -> -width } + fadeOut(tween(220)))
+                        } else {
+                            (slideInHorizontally(tween(340, easing = FastOutSlowInEasing)) { width -> -width } + fadeIn(tween(260)))
+                                .togetherWith(slideOutHorizontally(tween(340, easing = FastOutSlowInEasing)) { width -> width } + fadeOut(tween(220)))
+                        }
+                    } else if (targetState > initialState) {
                         (slideInVertically { height -> height } + fadeIn()).togetherWith(
                             slideOutVertically { height -> -height } + fadeOut()
                         )
@@ -2293,7 +2343,14 @@ fun PracticeScreenView(
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth().wrapContentHeight()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .graphicsLayer {
+                        translationX = animatedDragX
+                        rotationZ = (animatedDragX / 28f).coerceIn(-12f, 12f)
+                    },
+                label = "practiceFlashcardTransition"
             ) { targetIndex ->
                 val activePair = practicePairs.getOrNull(targetIndex) ?: currentPair
                 val activePromptText = if (currentDirection == "vi") activePair.vi else activePair.foreign
@@ -2860,6 +2917,32 @@ fun PracticeScreenView(
                             }
                         }
                     }
+                }
+            }
+
+            // Live Quizlet Left/Right Swipe Stamp Overlay
+            if (isQuizletSorting && kotlin.math.abs(dragAmountX) > 28f) {
+                val isSwipingRight = dragAmountX > 0f
+                val badgeAlpha = (kotlin.math.abs(dragAmountX) / dragThreshold).coerceIn(0.25f, 1f)
+                Surface(
+                    modifier = Modifier
+                        .align(if (isSwipingRight) Alignment.TopEnd else Alignment.TopStart)
+                        .padding(16.dp)
+                        .graphicsLayer {
+                            alpha = badgeAlpha
+                            rotationZ = if (isSwipingRight) 10f else -10f
+                        },
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isSwipingRight) Color(0xFF10B981) else Color(0xFFF59E0B),
+                    shadowElevation = 6.dp
+                ) {
+                    Text(
+                        text = if (isSwipingRight) "✅ ĐÃ NHỚ (Vuốt Phải)" else "⏳ CHƯA NHỚ (Vuốt Trái)",
+                        color = Color.White,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                    )
                 }
             }
         }
@@ -3493,7 +3576,23 @@ fun PracticeScreenView(
                             factory = { ctx ->
                                 WebView(ctx).apply {
                                     val webViewInstance = this
-                                    webViewClient = WebViewClient()
+                                    webViewClient = object : WebViewClient() {
+                                        override fun onPageFinished(view: WebView?, url: String?) {
+                                            super.onPageFinished(view, url)
+                                            if (url != null && url.contains("hanzii.net")) {
+                                                view?.evaluateJavascript(
+                                                    """
+                                                    (function() {
+                                                        var style = document.createElement('style');
+                                                        style.innerHTML = 'em, .hl, .txt-hl, .highlight, .cl-red, span.red, b.hl { color: #E11D48 !important; font-weight: 800 !important; }';
+                                                        document.head.appendChild(style);
+                                                    })();
+                                                    """.trimIndent(),
+                                                    null
+                                                )
+                                            }
+                                        }
+                                    }
                                     webChromeClient = WebChromeClient()
                                     
                                     // Enable cookies & third-party cookies for seamless login and user preferences (e.g., Google Search Labs / AI Mode)

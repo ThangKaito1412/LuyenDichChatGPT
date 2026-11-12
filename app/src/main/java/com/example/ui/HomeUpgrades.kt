@@ -51,6 +51,8 @@ import com.example.data.Folder
 import com.example.data.StudySet
 import com.example.data.isCjk
 import com.example.viewmodel.TranslationViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import java.net.URLEncoder
 
 data class EditableVocabItem(
@@ -94,7 +96,9 @@ data class VocabSearchResult(
     val vi: String,
     val foreign: String,
     val setTitle: String,
-    val studySet: StudySet
+    val studySet: StudySet,
+    val occurrenceCount: Int = 1,
+    val allLessonTitles: String = setTitle
 )
 
 @Composable
@@ -105,7 +109,7 @@ fun ModernHomeDashboardBanner(
     isPassiveActive: Boolean,
     isQuizletEnabled: Boolean,
     onOpenQuickLookup: () -> Unit,
-    onOpenLiveVoiceTranslator: () -> Unit,
+    onOpenSavedAndTaggedHub: () -> Unit,
     onOpenQuickDualSave: () -> Unit,
     onOpenImageTranslator: () -> Unit,
     onOpenPassiveSettings: () -> Unit,
@@ -131,31 +135,33 @@ fun ModernHomeDashboardBanner(
                 label = "Bài học"
             )
             StatMiniCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onOpenSavedAndTaggedHub() },
                 icon = "⭐",
                 value = "$starredCount",
-                label = "Từ gắn sao"
+                label = "Đã lưu & Sao"
             )
         }
 
-        // Row 1: Dịch Nói 2 Chiều (Live Voice) + Lưu Nhanh 2 Loại (Từ vựng & Ghi chú)
+        // Row 1: Quản lý Đã Lưu & Cần Ôn (Chưa thuộc / Cần ôn / Đã sao) + Lưu Nhanh 2 Loại (Từ vựng & Ghi chú)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             FeatureQuickCard(
                 modifier = Modifier.weight(1f),
-                title = "Dịch Nói 2 Chiều",
-                subtitle = "Văn bản trực tiếp 🇻🇳↔🇨🇳",
-                icon = Icons.Default.RecordVoiceOver,
+                title = "Đã Lưu & Cần Ôn",
+                subtitle = "Chưa thuộc • Đã sao ⭐",
+                icon = Icons.Default.Bookmarks,
                 containerColor = Color(0xFF0284C7).copy(alpha = 0.16f),
                 contentColor = Color(0xFF0284C7),
-                onClick = onOpenLiveVoiceTranslator
+                onClick = onOpenSavedAndTaggedHub
             )
             FeatureQuickCard(
                 modifier = Modifier.weight(1f),
                 title = "Lưu Từ & Ghi Chú",
-                subtitle = "2 Thư mục nhanh riêng",
+                subtitle = "2 Thư mục • Lưu ngày",
                 icon = Icons.Default.BookmarkAdd,
                 containerColor = Color(0xFFD97706).copy(alpha = 0.16f),
                 contentColor = Color(0xFFD97706),
@@ -318,72 +324,72 @@ fun GlobalVocabularySearchBar(
     onSearchQueryChange: (String) -> Unit,
     studySets: List<StudySet>,
     folders: List<Folder>,
+    viewModel: TranslationViewModel,
     onSelectStudySet: (StudySet, Boolean) -> Unit,
     onEditStudySet: (StudySet) -> Unit,
     onSpeakWord: (String, String) -> Unit,
     onWriteWord: (String) -> Unit,
     onOpenVisualVocabDetail: (VisualVocabEntry, List<VisualVocabEntry>) -> Unit,
     onRequestMultiFolderSave: (vi: String, foreign: String) -> Unit,
-    onOpenVoiceSearch: () -> Unit,
-    onOpenCameraOrPhotoOcr: () -> Unit
+    onOpenCameraOrPhotoOcr: () -> Unit,
+    onOpenWebUrl: ((String) -> Unit)? = null
 ) {
     val trimmedQuery = searchQuery.trim()
+    val starredPairs by viewModel.allStarredPairs.collectAsState()
     var liveSentenceTranslation by remember { mutableStateOf<TwoWayTranslationResult?>(null) }
+    var smartSuggestions by remember { mutableStateOf<SmartInputSuggestion?>(null) }
     var isTranslatingSentence by remember { mutableStateOf(false) }
 
-    // Trigger 2-way translation automatically when user enters any word, Pinyin, or sentence
+    // Pre-warm the in-memory vocabulary index in background so typing is 0ms lag
+    LaunchedEffect(studySets.size) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            TwoWayTranslatorEngine.ensureFastIndex(studySets)
+        }
+    }
+
+    // Instant (<1ms) automatic Vietnamese typo / Telex / diacritic correction preview
+    val instantAutoCorrectedVi = remember(trimmedQuery, studySets) {
+        if (trimmedQuery.length >= 2 && !trimmedQuery.any { isCjk(it) }) {
+            TwoWayTranslatorEngine.autoCorrectVietnameseText(trimmedQuery, studySets)
+        } else {
+            trimmedQuery
+        }
+    }
+
+    // Trigger online translation + automatic Pinyin/Vietnamese prediction in parallel with minimal 120ms debounce
     LaunchedEffect(trimmedQuery) {
         if (trimmedQuery.length < 2) {
             liveSentenceTranslation = null
+            smartSuggestions = null
             isTranslatingSentence = false
         } else {
-            kotlinx.coroutines.delay(350)
+            kotlinx.coroutines.delay(120)
             isTranslatingSentence = true
-            liveSentenceTranslation = TwoWayTranslatorEngine.translateTwoWay(trimmedQuery, studySets)
+            coroutineScope {
+                val transDeferred = async {
+                    TwoWayTranslatorEngine.translateTwoWay(trimmedQuery, studySets)
+                }
+                val smartDeferred = async {
+                    TwoWayTranslatorEngine.fetchSmartInputSuggestions(trimmedQuery, studySets)
+                }
+                liveSentenceTranslation = transDeferred.await()
+                smartSuggestions = smartDeferred.await()
+            }
             isTranslatingSentence = false
         }
     }
 
     val matchingSets = remember(trimmedQuery, studySets) {
-        if (trimmedQuery.length < 2) emptyList()
+        if (trimmedQuery.isEmpty()) emptyList()
         else studySets.filter {
             TwoWayTranslatorEngine.matchesQueryWithPinyin(it.title, trimmedQuery)
-        }.take(6)
+        }.distinctBy { it.title.trim().lowercase() }.take(6)
     }
 
+    // Instant (<2ms) deduplicated predictive vocabulary search from pre-built memory index (works from 1st character!)
     val matchingWords = remember(trimmedQuery, studySets) {
-        if (trimmedQuery.length < 2) emptyList()
-        else {
-            val results = ArrayList<VocabSearchResult>(30)
-            for (set in studySets) {
-                if (results.size >= 30) break
-                val lines = set.rawContent.split("\n")
-                for (line in lines) {
-                    if (results.size >= 30) break
-                    if ((line.contains("=") || line.contains("#")) &&
-                        TwoWayTranslatorEngine.matchesQueryWithPinyin(line, trimmedQuery)
-                    ) {
-                        val parts = line.split("=", "#").map { it.trim() }
-                        if (parts.size >= 2) {
-                            val p1 = parts[0]
-                            val p2 = parts[1]
-                            val hasZh1 = p1.any { isCjk(it) }
-                            val hasZh2 = p2.any { isCjk(it) }
-                            val (viSide, foreignSide) = if (hasZh1 && !hasZh2) p2 to p1 else p1 to p2
-                            results.add(
-                                VocabSearchResult(
-                                    vi = viSide,
-                                    foreign = foreignSide,
-                                    setTitle = set.title,
-                                    studySet = set
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-            results
-        }
+        if (trimmedQuery.isEmpty()) emptyList()
+        else TwoWayTranslatorEngine.searchAndPredictInstant(trimmedQuery, studySets, limit = 30)
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -393,8 +399,8 @@ fun GlobalVocabularySearchBar(
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
-                    "🔍 Tra chữ Hán, Pinyin (không dấu), câu hoặc dịch Việt ↔ Trung...",
-                    fontSize = 12.5.sp
+                    "🔍 Tra chữ Hán, Pinyin không dấu, Tiếng Việt không dấu hoặc dịch câu Online...",
+                    fontSize = 12.sp
                 )
             },
             leadingIcon = {
@@ -409,17 +415,6 @@ fun GlobalVocabularySearchBar(
                         ) {
                             Icon(Icons.Default.Clear, contentDescription = "Xóa tìm kiếm", modifier = Modifier.size(18.dp))
                         }
-                    }
-                    IconButton(
-                        onClick = onOpenVoiceSearch,
-                        modifier = Modifier.size(34.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Mic,
-                            contentDescription = "Nhập bằng giọng nói thông minh",
-                            tint = Color(0xFF0284C7),
-                            modifier = Modifier.size(20.dp)
-                        )
                     }
                     IconButton(
                         onClick = onOpenCameraOrPhotoOcr,
@@ -443,7 +438,7 @@ fun GlobalVocabularySearchBar(
         )
 
         AnimatedVisibility(
-            visible = trimmedQuery.length >= 2,
+            visible = trimmedQuery.isNotEmpty(),
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut()
         ) {
@@ -462,23 +457,163 @@ fun GlobalVocabularySearchBar(
                         .padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // 1. Automatic 2-Way Sentence / Phrase Translation Card
-                    if (isTranslatingSentence) {
+                    // 0. Instant Predictive Autocomplete & Automatic Typo/Pinyin Recognition Bar
+                    val hasAutoTypoFix = !instantAutoCorrectedVi.equals(trimmedQuery, ignoreCase = true)
+                    val topPredictedItems = remember(matchingWords, smartSuggestions) {
+                        val list = ArrayList<Triple<String, String, String>>(6) // hanzi, pinyin, vi
+                        matchingWords.take(5).forEach { m ->
+                            val parsed = parseEditableVocabItems("${m.vi} = ${m.foreign}").firstOrNull()
+                            val hz = parsed?.hanzi ?: m.foreign.substringBefore("(").trim()
+                            val py = parsed?.pinyin ?: ""
+                            val vi = parsed?.vi ?: m.vi
+                            list.add(Triple(hz, py, vi))
+                        }
+                        smartSuggestions?.hanziCandidates?.forEach { (hz, desc) ->
+                            if (list.size < 6 && list.none { it.first == hz }) {
+                                list.add(Triple(hz, "", desc))
+                            }
+                        }
+                        list
+                    }
+
+                    if (hasAutoTypoFix || topPredictedItems.isNotEmpty() || (smartSuggestions?.pinyinWithTonesList?.isNotEmpty() == true)) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.26f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                if (hasAutoTypoFix) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(Color(0xFFDCFCE7))
+                                            .clickable { onSearchQueryChange(instantAutoCorrectedVi) }
+                                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "✅ Tự động sửa chính tả: “$instantAutoCorrectedVi”",
+                                            fontSize = 11.5.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color(0xFF166534),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Text(
+                                            text = "Áp dụng ↵",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF15803D)
+                                        )
+                                    }
+                                }
+
+                                val autoPinyinTone = smartSuggestions?.pinyinWithTonesList?.firstOrNull()
+                                if (!autoPinyinTone.isNullOrBlank()) {
+                                    Text(
+                                        text = "⚡ Tự động dự đoán Pinyin: [$autoPinyinTone] • Gợi ý từ muốn tìm:",
+                                        fontSize = 10.5.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFF9A3412)
+                                    )
+                                } else if (topPredictedItems.isNotEmpty()) {
+                                    Text(
+                                        text = "⚡ Gợi ý đoán nhanh từ đang nhập (Chạm để xem ngay):",
+                                        fontSize = 10.5.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFF0369A1)
+                                    )
+                                }
+
+                                if (topPredictedItems.isNotEmpty()) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(rememberScrollState()),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        topPredictedItems.forEach { (hz, py, vi) ->
+                                            Surface(
+                                                modifier = Modifier.clickable {
+                                                    val vEntry = VisualVocabEntry(
+                                                        indexInBook = 1,
+                                                        hanzi = hz,
+                                                        pinyin = py,
+                                                        vi = vi,
+                                                        lessonTitle = "Gợi ý tra cứu nhanh"
+                                                    )
+                                                    onOpenVisualVocabDetail(vEntry, emptyList())
+                                                },
+                                                shape = RoundedCornerShape(10.dp),
+                                                color = Color.White,
+                                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                    Text(
+                                                        text = hz,
+                                                        fontSize = 12.5.sp,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        color = Color(0xFF1C1917)
+                                                    )
+                                                    if (py.isNotBlank()) {
+                                                        Text(
+                                                            text = "[$py]",
+                                                            fontSize = 10.5.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = Color(0xFF9A3412)
+                                                        )
+                                                    }
+                                                    Text(
+                                                        text = "• $vi",
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = Color(0xFF0369A1),
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 1. Automatic Online Sentence / Phrase Translation Card
+                    if (isTranslatingSentence && liveSentenceTranslation == null) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             CircularProgressIndicator(modifier = Modifier.size(15.dp), strokeWidth = 2.dp)
-                            Text("Đang dịch nhanh 2 chiều Việt ↔ Trung...", fontSize = 11.5.sp)
+                            Text("🌐 Đang dịch tự động & sửa lỗi chính tả...", fontSize = 11.5.sp)
                         }
                     } else {
                         liveSentenceTranslation?.let { trans ->
                             if (trans.translatedText.isNotBlank()) {
-                                val viSide = if (trans.sourceLang == "vi") trans.sourceText else trans.translatedText
+                                val rawViSide = if (trans.sourceLang == "vi") trans.sourceText else trans.translatedText
+                                val viSide = remember(rawViSide, studySets) {
+                                    TwoWayTranslatorEngine.autoCorrectVietnameseText(rawViSide, studySets)
+                                }
                                 val zhSide = if (trans.sourceLang == "zh") trans.sourceText else trans.translatedText
                                 val fullZhWithPinyin = if (trans.pinyin.isNotBlank() && !zhSide.contains("(")) {
                                     "$zhSide (${trans.pinyin})"
                                 } else zhSide
+                                val isTransStarred = starredPairs.any {
+                                    it.vi.trim().equals(viSide.trim(), ignoreCase = true) ||
+                                        it.foreign.contains(zhSide)
+                                }
 
                                 Card(
                                     modifier = Modifier
@@ -489,7 +624,7 @@ fun GlobalVocabularySearchBar(
                                                 hanzi = zhSide,
                                                 pinyin = trans.pinyin,
                                                 vi = viSide,
-                                                lessonTitle = "Tra cứu & Dịch 2 chiều"
+                                                lessonTitle = "Tra cứu & Dịch Online"
                                             )
                                             onOpenVisualVocabDetail(visualEntry, emptyList())
                                         },
@@ -507,15 +642,26 @@ fun GlobalVocabularySearchBar(
                                         ) {
                                             Text(
                                                 text = if (trans.sourceLang == "vi")
-                                                    "🌐 DỊCH TỰ ĐỘNG 2 CHIỀU (VIỆT ➔ TRUNG) • Chạm xem Ảnh & Câu ví dụ"
+                                                    "🌐 BẢN DỊCH ONLINE (VIỆT ➔ TRUNG) • Chạm xem Cụm từ, Ảnh & Ví dụ"
                                                 else
-                                                    "🌐 DỊCH TỰ ĐỘNG 2 CHIỀU (TRUNG ➔ VIỆT) • Chạm xem Ảnh & Câu ví dụ",
+                                                    "🌐 BẢN DỊCH ONLINE (TRUNG ➔ VIỆT) • Chạm xem Cụm từ, Ảnh & Ví dụ",
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.ExtraBold,
                                                 color = Color(0xFF92400E),
                                                 modifier = Modifier.weight(1f)
                                             )
-                                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                IconButton(
+                                                    onClick = { viewModel.toggleStar(viSide, fullZhWithPinyin, "zh") },
+                                                    modifier = Modifier.size(28.dp)
+                                                ) {
+                                                    Icon(
+                                                        if (isTransStarred) Icons.Default.Star else Icons.Default.StarBorder,
+                                                        contentDescription = "Gắn sao",
+                                                        tint = if (isTransStarred) Color(0xFFF59E0B) else Color(0xFF78716C),
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
                                                 IconButton(
                                                     onClick = { onSpeakWord(zhSide, "zh") },
                                                     modifier = Modifier.size(28.dp)
@@ -529,6 +675,14 @@ fun GlobalVocabularySearchBar(
                                                     Icon(Icons.Default.BookmarkAdd, contentDescription = "Lưu nhiều thư mục", tint = Color(0xFF0284C7), modifier = Modifier.size(17.dp))
                                                 }
                                             }
+                                        }
+                                        if (trans.correctedSourceText.isNotBlank()) {
+                                            Text(
+                                                text = "✨ ${trans.correctedSourceText}",
+                                                fontSize = 10.5.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Color(0xFF0284C7)
+                                            )
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
@@ -551,13 +705,45 @@ fun GlobalVocabularySearchBar(
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF292524)
                                         )
+                                        if (trans.alternativeTranslations.isNotEmpty()) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = "🔄 Cách diễn đạt thay thế: ${trans.alternativeTranslations.joinToString(" • ")}",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF57534E)
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
 
-                    // 2. Matching Vocabulary & Sentences from Built-in Datasets
+                    // Online Web Dictionary Lookup Links (always available even if word is not in local data)
+                    if (onOpenWebUrl != null) {
+                        val encodedQ = URLEncoder.encode(trimmedQuery, "UTF-8")
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            AssistChip(
+                                onClick = { onOpenWebUrl("https://hanzii.net/search/word/$encodedQ?hl=vi") },
+                                label = { Text("📖 Tra Hanzii Online", fontSize = 11.sp) }
+                            )
+                            AssistChip(
+                                onClick = { onOpenWebUrl("https://hanzii.net/search/example/$encodedQ?hl=vi") },
+                                label = { Text("📝 Mẫu câu Hanzii", fontSize = 11.sp) }
+                            )
+                            AssistChip(
+                                onClick = { onOpenWebUrl("https://translate.google.com/?sl=auto&tl=zh-CN&text=$encodedQ&op=translate") },
+                                label = { Text("🌐 Google Dịch", fontSize = 11.sp) }
+                            )
+                        }
+                    }
+
+                    // 2. Deduplicated Matching Vocabulary & Sentences from Built-in Datasets
                     if (matchingWords.isNotEmpty()) {
                         val visualList = remember(matchingWords) {
                             matchingWords.mapIndexed { idx, m ->
@@ -567,14 +753,14 @@ fun GlobalVocabularySearchBar(
                                     hanzi = parsed?.hanzi ?: m.foreign,
                                     pinyin = parsed?.pinyin ?: "",
                                     vi = parsed?.vi ?: m.vi,
-                                    lessonTitle = m.setTitle,
+                                    lessonTitle = m.allLessonTitles,
                                     studySet = m.studySet
                                 )
                             }
                         }
 
                         Text(
-                            text = "🔤 TỪ VỰNG & CÂU CÓ SẴN TRONG KHO (${matchingWords.size}) • Ấn vào từ để xem Ảnh & Câu ví dụ",
+                            text = "🔤 TỪ VỰNG TRONG KHO (ĐÃ LỌC TRÙNG: ${matchingWords.size} TỪ) • Chạm ⭐ để gắn sao hoặc chạm từ để mở Cụm từ & Ảnh",
                             fontSize = 10.5.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.secondary
@@ -588,19 +774,47 @@ fun GlobalVocabularySearchBar(
                         ) {
                             matchingWords.forEachIndexed { idx, item ->
                                 val vEntry = visualList[idx]
+                                val isStarred = starredPairs.any {
+                                    it.vi.trim().equals(vEntry.vi.trim(), ignoreCase = true) ||
+                                        (vEntry.hanzi.isNotBlank() && it.foreign.contains(vEntry.hanzi))
+                                }
+                                val savedDate = remember(vEntry.hanzi, viewModel.vocabStatusVersion.value) {
+                                    viewModel.getWordSavedDateFormatted(vEntry.hanzi)
+                                }
+
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(14.dp))
-                                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.28f))
+                                        .background(
+                                            if (isStarred) Color(0xFFFFFBEB)
+                                            else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.28f)
+                                        )
                                         .clickable {
                                             onOpenVisualVocabDetail(vEntry, visualList)
                                         }
-                                        .padding(horizontal = 12.dp, vertical = 9.dp),
+                                        .padding(horizontal = 10.dp, vertical = 9.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
+                                    // 1-Tap Outside Star Toggle
+                                    IconButton(
+                                        onClick = { viewModel.toggleStar(vEntry.vi, vEntry.fullForeign, item.studySet.language) },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            if (isStarred) Icons.Default.Star else Icons.Default.StarBorder,
+                                            contentDescription = "Gắn sao",
+                                            tint = if (isStarred) Color(0xFFF59E0B) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(horizontal = 6.dp)
+                                    ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -619,6 +833,20 @@ fun GlobalVocabularySearchBar(
                                                     color = Color(0xFFB45309)
                                                 )
                                             }
+                                            if (item.occurrenceCount > 1) {
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                                                ) {
+                                                    Text(
+                                                        text = "Có trong ${item.occurrenceCount} bài",
+                                                        fontSize = 9.5.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                                    )
+                                                }
+                                            }
                                         }
                                         Text(
                                             text = "🇻🇳 ${vEntry.vi}",
@@ -627,8 +855,11 @@ fun GlobalVocabularySearchBar(
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                         Text(
-                                            text = "📖 ${item.setTitle} (Chạm xem ảnh minh họa & câu ví dụ)",
+                                            text = if (savedDate.isNotBlank()) "📅 Đã lưu: $savedDate • 📖 ${item.allLessonTitles}"
+                                            else "📖 ${item.allLessonTitles}",
                                             fontSize = 10.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
                                         )
                                     }
@@ -739,14 +970,15 @@ fun QuickTranslationLookupDialog(
     onOpenWebUrl: (String) -> Unit,
     onOpenVisualVocabDetail: ((VisualVocabEntry, List<VisualVocabEntry>) -> Unit)? = null,
     onRequestMultiFolderSave: ((String, String) -> Unit)? = null,
-    onOpenVoiceTranslator: (() -> Unit)? = null,
-    onOpenCameraOcr: (() -> Unit)? = null
+    onOpenCameraOcr: (() -> Unit)? = null,
+    viewModel: TranslationViewModel? = null
 ) {
     var query by remember { mutableStateOf("") }
     var customVi by remember { mutableStateOf("") }
     var customHanzi by remember { mutableStateOf("") }
     var customPinyin by remember { mutableStateOf("") }
     var liveTranslation by remember { mutableStateOf<TwoWayTranslationResult?>(null) }
+    var smartSuggestions by remember { mutableStateOf<SmartInputSuggestion?>(null) }
     var isTranslating by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -754,11 +986,17 @@ fun QuickTranslationLookupDialog(
         val q = query.trim()
         if (q.length < 2) {
             liveTranslation = null
+            smartSuggestions = null
             isTranslating = false
         } else {
-            kotlinx.coroutines.delay(350)
+            kotlinx.coroutines.delay(120)
             isTranslating = true
-            liveTranslation = TwoWayTranslatorEngine.translateTwoWay(q, studySets)
+            coroutineScope {
+                val tDef = async { TwoWayTranslatorEngine.translateTwoWay(q, studySets) }
+                val sDef = async { TwoWayTranslatorEngine.fetchSmartInputSuggestions(q, studySets) }
+                liveTranslation = tDef.await()
+                smartSuggestions = sDef.await()
+            }
             isTranslating = false
         }
     }
@@ -766,29 +1004,7 @@ fun QuickTranslationLookupDialog(
     val localMatches = remember(query, studySets) {
         val q = query.trim()
         if (q.isEmpty()) emptyList()
-        else {
-            val out = ArrayList<VocabSearchResult>(30)
-            for (set in studySets) {
-                if (out.size >= 30) break
-                for (line in set.rawContent.split("\n")) {
-                    if (out.size >= 30) break
-                    if ((line.contains("=") || line.contains("#")) &&
-                        TwoWayTranslatorEngine.matchesQueryWithPinyin(line, q)
-                    ) {
-                        val parts = line.split("=", "#").map { it.trim() }
-                        if (parts.size >= 2) {
-                            val p1 = parts[0]
-                            val p2 = parts[1]
-                            val hasZh1 = p1.any { isCjk(it) }
-                            val hasZh2 = p2.any { isCjk(it) }
-                            val (viSide, foreignSide) = if (hasZh1 && !hasZh2) p2 to p1 else p1 to p2
-                            out.add(VocabSearchResult(viSide, foreignSide, set.title, set))
-                        }
-                    }
-                }
-            }
-            out
-        }
+        else TwoWayTranslatorEngine.searchAndPredictInstant(q, studySets, limit = 30)
     }
 
     AlertDialog(
@@ -802,7 +1018,7 @@ fun QuickTranslationLookupDialog(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Default.Translate, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Text("Tra cứu & Dịch 2 chiều", fontWeight = FontWeight.Bold, fontSize = 16.5.sp)
+                    Text("Tra cứu & Dịch Nhanh Online", fontWeight = FontWeight.Bold, fontSize = 16.5.sp)
                 }
                 IconButton(onClick = onDismiss, modifier = Modifier.size(30.dp)) {
                     Icon(Icons.Default.Close, contentDescription = "Đóng")
@@ -820,8 +1036,8 @@ fun QuickTranslationLookupDialog(
                     value = query,
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Nhập chữ Hán, Pinyin không dấu, từ hoặc câu...", fontSize = 12.5.sp) },
-                    singleLine = true,
+                    placeholder = { Text("Nhập chữ Hán, Pinyin, Tiếng Việt sai chính tả hoặc câu dài...", fontSize = 12.sp) },
+                    maxLines = 3,
                     shape = RoundedCornerShape(16.dp),
                     trailingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -842,17 +1058,6 @@ fun QuickTranslationLookupDialog(
                                     Icon(Icons.Default.Clear, contentDescription = "Xóa", modifier = Modifier.size(18.dp))
                                 }
                             }
-                            if (onOpenVoiceTranslator != null) {
-                                IconButton(
-                                    onClick = {
-                                        onDismiss()
-                                        onOpenVoiceTranslator()
-                                    },
-                                    modifier = Modifier.size(30.dp)
-                                ) {
-                                    Icon(Icons.Default.Mic, contentDescription = "Dịch nói", tint = Color(0xFF0284C7), modifier = Modifier.size(18.dp))
-                                }
-                            }
                             if (onOpenCameraOcr != null) {
                                 IconButton(
                                     onClick = {
@@ -868,20 +1073,47 @@ fun QuickTranslationLookupDialog(
                     }
                 )
 
-                // Live 2-Way Sentence Translation Box
-                if (isTranslating) {
+                // Compact Automatic Pinyin & Vietnamese Typo Prediction inside Dialog
+                val autoFixedDialogVi = remember(query, studySets) {
+                    val q = query.trim()
+                    if (q.length >= 2 && !q.any { isCjk(it) }) TwoWayTranslatorEngine.autoCorrectVietnameseText(q, studySets) else q
+                }
+                if (!autoFixedDialogVi.equals(query.trim(), ignoreCase = true) && query.trim().length >= 2) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { query = autoFixedDialogVi },
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFDCFCE7),
+                        border = BorderStroke(1.dp, Color(0xFF22C55E))
+                    ) {
+                        Text(
+                            text = "✅ Đã tự động sửa lỗi chính tả: “$autoFixedDialogVi”",
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF166534),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+
+                // Live Online Sentence Translation Box
+                if (isTranslating && liveTranslation == null) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 } else {
                     liveTranslation?.let { trans ->
                         if (trans.translatedText.isNotBlank()) {
-                            val viSide = if (trans.sourceLang == "vi") trans.sourceText else trans.translatedText
+                            val rawViSide = if (trans.sourceLang == "vi") trans.sourceText else trans.translatedText
+                            val viSide = remember(rawViSide, studySets) {
+                                TwoWayTranslatorEngine.autoCorrectVietnameseText(rawViSide, studySets)
+                            }
                             val zhSide = if (trans.sourceLang == "zh") trans.sourceText else trans.translatedText
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
                                         onOpenVisualVocabDetail?.invoke(
-                                            VisualVocabEntry(1, zhSide, trans.pinyin, viSide, "Tra cứu trực quan"),
+                                            VisualVocabEntry(1, zhSide, trans.pinyin, viSide, "Tra cứu trực quan Online"),
                                             emptyList()
                                         )
                                     },
@@ -891,11 +1123,14 @@ fun QuickTranslationLookupDialog(
                             ) {
                                 Column(modifier = Modifier.padding(10.dp)) {
                                     Text(
-                                        text = if (trans.sourceLang == "vi") "🇻🇳 Việt ➔ 🇨🇳 Trung (Chạm mở chi tiết ảnh & ví dụ)" else "🇨🇳 Trung ➔ 🇻🇳 Việt (Chạm mở chi tiết ảnh & ví dụ)",
+                                        text = if (trans.sourceLang == "vi") "🌐 Bản dịch Online (Việt ➔ Trung) • Chạm mở Cụm từ & Ví dụ" else "🌐 Bản dịch Online (Trung ➔ Việt) • Chạm mở Cụm từ & Ví dụ",
                                         fontSize = 10.5.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF92400E)
                                     )
+                                    if (trans.correctedSourceText.isNotBlank()) {
+                                        Text("✨ ${trans.correctedSourceText}", fontSize = 10.5.sp, color = Color(0xFF0284C7), fontWeight = FontWeight.SemiBold)
+                                    }
                                     Text(zhSide, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, color = Color(0xFF1C1917))
                                     if (trans.pinyin.isNotBlank()) {
                                         Text("[${trans.pinyin}]", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9A3412))
@@ -937,7 +1172,7 @@ fun QuickTranslationLookupDialog(
 
                 if (query.trim().isNotEmpty()) {
                     Text(
-                        text = "Kết quả trong Kho Sách (${localMatches.size}) • Ấn vào từ để xem Ảnh & Câu ví dụ:",
+                        text = "Kết quả trong Kho Sách (Đã lọc trùng: ${localMatches.size}) • Ấn vào từ để xem Cụm từ & Ảnh:",
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -951,7 +1186,7 @@ fun QuickTranslationLookupDialog(
                                     hanzi = parsed?.hanzi ?: m.foreign,
                                     pinyin = parsed?.pinyin ?: "",
                                     vi = parsed?.vi ?: m.vi,
-                                    lessonTitle = m.setTitle,
+                                    lessonTitle = m.allLessonTitles,
                                     studySet = m.studySet
                                 )
                             }
@@ -984,11 +1219,29 @@ fun QuickTranslationLookupDialog(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Column(modifier = Modifier.weight(1f)) {
-                                            Text(m.foreign, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                                Text(m.foreign, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                                if (m.occurrenceCount > 1) {
+                                                    Text(
+                                                        text = "(${m.occurrenceCount} bài)",
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
                                             Text("🇻🇳 ${m.vi}", fontSize = 12.5.sp, color = MaterialTheme.colorScheme.primary)
-                                            Text("📚 ${m.setTitle}", fontSize = 10.sp, color = Color.Gray)
+                                            Text("📚 ${m.allLessonTitles}", fontSize = 10.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                         }
                                         Row {
+                                            if (viewModel != null) {
+                                                IconButton(
+                                                    onClick = { viewModel.toggleStar(m.vi, m.foreign, "zh") },
+                                                    modifier = Modifier.size(30.dp)
+                                                ) {
+                                                    Icon(Icons.Default.StarBorder, contentDescription = "Gắn sao", tint = Color(0xFFF59E0B), modifier = Modifier.size(18.dp))
+                                                }
+                                            }
                                             IconButton(
                                                 onClick = { onSpeak(vItem.hanzi, "zh") },
                                                 modifier = Modifier.size(30.dp)

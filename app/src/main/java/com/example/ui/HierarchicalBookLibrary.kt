@@ -896,6 +896,23 @@ fun HierarchicalBookLibraryCard(
                                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                                     )
                                                 }
+                                            } else if (deck.lastModified > 0L) {
+                                                val savedDateStr = remember(deck.lastModified) {
+                                                    java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+                                                        .format(java.util.Date(deck.lastModified))
+                                                }
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = Color(0xFFE0F2FE)
+                                                ) {
+                                                    Text(
+                                                        text = "📅 Lưu: $savedDateStr",
+                                                        fontSize = 9.5.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFF0369A1),
+                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                    )
+                                                }
                                             }
                                         }
                                     }

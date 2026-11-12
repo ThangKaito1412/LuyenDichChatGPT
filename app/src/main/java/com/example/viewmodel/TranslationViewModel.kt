@@ -83,6 +83,12 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     val writingWord = mutableStateOf("")
     private var screenBeforeWriting = AppScreen.Setup
 
+    // Version counter to trigger UI recomposition when personal tags, notes, or saved dates change
+    val vocabStatusVersion = mutableStateOf(0)
+
+    // Last horizontal swipe direction in Quizlet mode (-1 = left/Chưa nhớ, 1 = right/Đã nhớ, 0 = vertical/default)
+    val lastQuizletSwipeDir = mutableStateOf(0)
+
     // Set of indices that the user has seen or practiced during current session
     private val _practicedIndices = MutableStateFlow<Set<Int>>(emptySet())
     val practicedIndices: StateFlow<Set<Int>> = _practicedIndices.asStateFlow()
@@ -146,6 +152,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun toggleStar(vi: String, foreign: String, language: String) {
+        recordWordSavedTimestamp(foreign, vi)
         viewModelScope.launch(Dispatchers.IO) {
             val existing = allStarredPairs.value.find { 
                 it.vi.trim().lowercase() == vi.trim().lowercase() && 
@@ -161,6 +168,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
 
     /** Gắn/bỏ sao hàng loạt cho danh sách (vi, foreign) bất kỳ, ví dụ danh sách luyện viết. */
     fun setStarForPairs(pairs: List<Pair<String, String>>, language: String, star: Boolean) {
+        if (star) {
+            pairs.forEach { (vi, foreign) -> recordWordSavedTimestamp(foreign, vi) }
+        }
         viewModelScope.launch(Dispatchers.IO) {
             fun key(a: String, b: String) = a.trim().lowercase() + "\u0000" + b.trim().lowercase()
             val existing = allStarredPairs.value.associateBy { key(it.vi, it.foreign) }
@@ -176,6 +186,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun starPairOnly(vi: String, foreign: String, language: String) {
+        recordWordSavedTimestamp(foreign, vi)
         viewModelScope.launch(Dispatchers.IO) {
             val existing = allStarredPairs.value.any { 
                 it.vi.trim().lowercase() == vi.trim().lowercase() && 
@@ -895,15 +906,20 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
             screenBeforeWriting = _currentScreen.value
         }
         _currentScreen.value = AppScreen.Writing
+        saveWritingPrefs()
+        saveStudyState()
     }
 
     fun closeWriting() {
-        saveWritingPrefs()
+        getApplication<Application>().getSharedPreferences("WritingStatePrefs", Context.MODE_PRIVATE)
+            .edit().putBoolean("tip_dialog_open", false).apply()
         _currentScreen.value = if (screenBeforeWriting == AppScreen.Practice && _practicePairs.value.isNotEmpty()) {
             AppScreen.Practice
         } else {
             AppScreen.Setup
         }
+        saveWritingPrefs()
+        saveStudyState()
     }
 
     fun saveWritingPrefs() {
@@ -916,6 +932,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
             .putBoolean("writing_autospeak", writingAutoSpeak.value)
             .putFloat("writing_speed", writingSpeed.value)
             .putString("writing_word", writingWord.value)
+            .putString("screen_before_writing", screenBeforeWriting.name)
             .apply()
     }
 
@@ -929,6 +946,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         if (!byAutoPlay) {
             stopAutoPlay()
         }
+        lastQuizletSwipeDir.value = 0
         if (_practicePairs.value.isEmpty()) return
         _currentIndex.value = (_currentIndex.value + 1) % _practicePairs.value.size
         displayItem()
@@ -936,6 +954,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
 
     fun previousItem() {
         stopAutoPlay()
+        lastQuizletSwipeDir.value = 0
         if (_practicePairs.value.isEmpty()) return
         _currentIndex.value = (_currentIndex.value - 1 + _practicePairs.value.size) % _practicePairs.value.size
         displayItem()
@@ -1017,6 +1036,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         onDone: (String) -> Unit
     ) {
         val cleanLine = "${vi.trim()} = ${foreign.trim()}"
+        recordWordSavedTimestamp(foreign, vi, tag = "Đã lưu")
         viewModelScope.launch(Dispatchers.IO) {
             var savedCount = 0
             val currentSets = allStudySets.value
@@ -1060,8 +1080,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                 }
             }
 
+            val dateStr = getWordSavedDateFormatted(foreign)
             withContext(Dispatchers.Main) {
-                onDone("Đã lưu vào $savedCount thư mục / bài học!")
+                onDone("Đã lưu vào $savedCount thư mục / bài học (Ngày lưu: $dateStr)!")
             }
         }
     }
@@ -1074,6 +1095,8 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         customSubSetTitle: String = "",
         onDone: (String) -> Unit
     ) {
+        val tagToSave = if (isNoteType && pinyinOrTag in listOf("Chưa thuộc", "Cần ôn tập", "Hay nhầm", "Đã thuộc")) pinyinOrTag else "Đã lưu"
+        recordWordSavedTimestamp(foreignOrHanzi, viOrNote, tag = tagToSave)
         viewModelScope.launch(Dispatchers.IO) {
             repository.ensureQuickSaveFoldersExist()
             val folders = database.studySetDao().getFoldersSync()
@@ -1124,31 +1147,178 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                 )
             }
 
+            val dateStr = getWordSavedDateFormatted(foreignOrHanzi)
             withContext(Dispatchers.Main) {
                 onDone(
-                    if (isNoteType) "Đã lưu vào '$desiredTitle' (${BuiltinLibraryCatalog.QUICK_NOTE_FOLDER_NAME})!"
-                    else "Đã lưu từ vựng vào '$desiredTitle' (${BuiltinLibraryCatalog.QUICK_VOCAB_FOLDER_NAME})!"
+                    if (isNoteType) "Đã lưu vào '$desiredTitle' (Ngày: $dateStr)!"
+                    else "Đã lưu từ vựng vào '$desiredTitle' (Ngày: $dateStr)!"
                 )
             }
         }
     }
 
-    fun getWordPersonalTag(hanziKey: String): String {
+    private fun extractCleanHanziKey(raw: String): String {
+        val trimmed = raw.trim()
+        val parenIdx = trimmed.indexOfAny(charArrayOf('(', '（', '[', '【'))
+        val base = if (parenIdx != -1) trimmed.substring(0, parenIdx).trim() else trimmed
+        return base.ifEmpty { trimmed }
+    }
+
+    fun formatSavedTimestamp(ms: Long): String {
+        if (ms <= 0L) return ""
+        val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        return sdf.format(java.util.Date(ms))
+    }
+
+    fun recordWordSavedTimestamp(hanziOrForeign: String, vi: String = "", tag: String? = null) {
+        val key = extractCleanHanziKey(hanziOrForeign)
+        if (key.isEmpty()) return
+        val now = System.currentTimeMillis()
         val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
-        return prefs.getString("tag_${hanziKey.trim()}", "Đã lưu") ?: "Đã lưu"
+        val editor = prefs.edit()
+        editor.putLong("time_$key", now)
+        if (vi.isNotBlank()) editor.putString("vi_$key", vi.trim())
+        if (hanziOrForeign.isNotBlank()) editor.putString("foreign_$key", hanziOrForeign.trim())
+        if (!tag.isNullOrBlank()) {
+            editor.putString("tag_$key", tag)
+        } else if (!prefs.contains("tag_$key")) {
+            editor.putString("tag_$key", "Đã lưu")
+        }
+        val keysSet = (prefs.getStringSet("tracked_keys", emptySet()) ?: emptySet()).toMutableSet()
+        keysSet.add(key)
+        editor.putStringSet("tracked_keys", keysSet)
+        editor.apply()
+        vocabStatusVersion.value++
+    }
+
+    fun getWordSavedTimestamp(hanziKey: String): Long {
+        val key = extractCleanHanziKey(hanziKey)
+        val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        return prefs.getLong("time_$key", 0L)
+    }
+
+    fun getWordSavedDateFormatted(hanziKey: String, fallbackMillis: Long = 0L): String {
+        val ts = getWordSavedTimestamp(hanziKey).let { if (it > 0L) it else fallbackMillis }
+        return if (ts > 0L) formatSavedTimestamp(ts) else ""
+    }
+
+    fun getWordPersonalTag(hanziKey: String): String {
+        val key = extractCleanHanziKey(hanziKey)
+        val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        return prefs.getString("tag_$key", "Đã lưu") ?: "Đã lưu"
     }
 
     fun getWordPersonalNote(hanziKey: String): String {
+        val key = extractCleanHanziKey(hanziKey)
         val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
-        return prefs.getString("note_${hanziKey.trim()}", "") ?: ""
+        return prefs.getString("note_$key", "") ?: ""
     }
 
-    fun saveWordPersonalNoteAndTag(hanziKey: String, tag: String, note: String) {
+    fun saveWordPersonalNoteAndTag(hanziKey: String, tag: String, note: String, vi: String = "", foreign: String = "") {
+        val key = extractCleanHanziKey(hanziKey)
+        if (key.isEmpty()) return
+        val now = System.currentTimeMillis()
         val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        val keysSet = (prefs.getStringSet("tracked_keys", emptySet()) ?: emptySet()).toMutableSet()
+        keysSet.add(key)
+        val editor = prefs.edit()
+            .putString("tag_$key", tag)
+            .putString("note_$key", note)
+            .putLong("time_$key", now)
+            .putStringSet("tracked_keys", keysSet)
+        if (vi.isNotBlank()) editor.putString("vi_$key", vi.trim())
+        if (foreign.isNotBlank()) editor.putString("foreign_$key", foreign.trim())
+        editor.apply()
+        vocabStatusVersion.value++
+    }
+
+    fun removeWordStatusRecord(hanziKey: String) {
+        val key = extractCleanHanziKey(hanziKey)
+        val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        val keysSet = (prefs.getStringSet("tracked_keys", emptySet()) ?: emptySet()).toMutableSet()
+        keysSet.remove(key)
         prefs.edit()
-            .putString("tag_${hanziKey.trim()}", tag)
-            .putString("note_${hanziKey.trim()}", note)
+            .remove("tag_$key")
+            .remove("note_$key")
+            .remove("time_$key")
+            .remove("vi_$key")
+            .remove("foreign_$key")
+            .putStringSet("tracked_keys", keysSet)
             .apply()
+        vocabStatusVersion.value++
+    }
+
+    data class TaggedVocabRecord(
+        val key: String,
+        val vi: String,
+        val foreign: String,
+        val tag: String,
+        val note: String,
+        val savedTimestamp: Long,
+        val formattedDate: String
+    )
+
+    fun getAllTaggedVocabRecords(): List<TaggedVocabRecord> {
+        val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        val tracked = (prefs.getStringSet("tracked_keys", emptySet()) ?: emptySet()).toMutableSet()
+        // Also discover any tag_ keys already saved in prefs
+        prefs.all.keys.forEach { k ->
+            if (k.startsWith("tag_")) {
+                tracked.add(k.removePrefix("tag_"))
+            }
+        }
+        val sets = allStudySets.value
+        val results = ArrayList<TaggedVocabRecord>(tracked.size)
+        for (key in tracked) {
+            if (key.isBlank()) continue
+            val tag = prefs.getString("tag_$key", "Đã lưu") ?: "Đã lưu"
+            val note = prefs.getString("note_$key", "") ?: ""
+            var vi = prefs.getString("vi_$key", "") ?: ""
+            var foreign = prefs.getString("foreign_$key", "") ?: key
+            val ts = prefs.getLong("time_$key", 0L)
+
+            if (vi.isBlank()) {
+                // Lookup in studySets or starredPairs
+                val starredMatch = allStarredPairs.value.find { it.foreign.contains(key) }
+                if (starredMatch != null) {
+                    vi = starredMatch.vi
+                    foreign = starredMatch.foreign
+                } else {
+                    for (set in sets) {
+                        if (!set.rawContent.contains(key)) continue
+                        val line = set.rawContent.lineSequence().firstOrNull { it.contains(key) && (it.contains("=") || it.contains("#")) }
+                        if (line != null) {
+                            val parts = line.split("=", "#").map { it.trim() }
+                            if (parts.size >= 2) {
+                                val hasZh0 = parts[0].any { isCjk(it) }
+                                vi = if (hasZh0) parts[1] else parts[0]
+                                foreign = if (hasZh0) parts[0] else parts[1]
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            results.add(
+                TaggedVocabRecord(
+                    key = key,
+                    vi = vi.ifBlank { key },
+                    foreign = foreign.ifBlank { key },
+                    tag = tag,
+                    note = note,
+                    savedTimestamp = ts,
+                    formattedDate = if (ts > 0L) formatSavedTimestamp(ts) else "Đã lưu"
+                )
+            )
+        }
+        return results.sortedByDescending { it.savedTimestamp }
+    }
+
+    fun startPracticeWithCustomList(pairs: List<TranslationPair>, customTitle: String): Boolean {
+        if (pairs.isEmpty()) return false
+        rawTextContent.value = pairs.joinToString("\n") { "${it.vi} = ${it.foreign}" }
+        deckTitle.value = customTitle
+        return startPractice()
     }
 
     fun updateStudySetContent(studySet: StudySet, newTitle: String, newRawContent: String, onDone: ((String) -> Unit)? = null) {
@@ -1214,6 +1384,20 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         val total = _practicePairs.value.size
         if (total == 0) return
         val idx = _currentIndex.value
+        lastQuizletSwipeDir.value = if (memorized) 1 else -1
+
+        // Also sync this card to the Saved & Learning Status Hub ("Đã thuộc" / "Chưa thuộc") with timestamp
+        _practicePairs.value.getOrNull(idx)?.let { currentPair ->
+            val currentNote = getWordPersonalNote(currentPair.foreign)
+            saveWordPersonalNoteAndTag(
+                hanziKey = currentPair.foreign,
+                tag = if (memorized) "Đã thuộc" else "Chưa thuộc",
+                note = currentNote,
+                vi = currentPair.vi,
+                foreign = currentPair.foreign
+            )
+        }
+
         if (memorized) {
             _memorizedIndices.value = _memorizedIndices.value + idx
             _stillLearningIndices.value = _stillLearningIndices.value - idx
@@ -1390,7 +1574,10 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         answerCardHeight.value = sharedPrefs.getFloat("answer_card_height", 220f).coerceIn(150f, 620f)
         writingSpeed.value = sharedPrefs.getFloat("writing_speed", 1.5f).coerceIn(0.5f, 3f)
         writingWord.value = sharedPrefs.getString("writing_word", "") ?: ""
+        val beforeStr = sharedPrefs.getString("screen_before_writing", AppScreen.Setup.name) ?: AppScreen.Setup.name
+        screenBeforeWriting = if (beforeStr == AppScreen.Practice.name) AppScreen.Practice else AppScreen.Setup
 
+        val screenStr = sharedPrefs.getString("currentScreen", AppScreen.Setup.name) ?: AppScreen.Setup.name
         val raw = sharedPrefs.getString("rawTextContent", "") ?: ""
         if (raw.isNotEmpty()) {
             rawTextContent.value = raw
@@ -1399,11 +1586,14 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
             isShuffle.value = sharedPrefs.getBoolean("isShuffle", true)
             deckTitle.value = sharedPrefs.getString("deckTitle", "") ?: ""
             
-            val screenStr = sharedPrefs.getString("currentScreen", AppScreen.Setup.name) ?: AppScreen.Setup.name
-            _currentScreen.value = if (screenStr == AppScreen.Practice.name) AppScreen.Practice else AppScreen.Setup
+            _currentScreen.value = when (screenStr) {
+                AppScreen.Practice.name -> AppScreen.Practice
+                AppScreen.Writing.name -> AppScreen.Writing
+                else -> AppScreen.Setup
+            }
             
             val savedPairsStr = sharedPrefs.getString("serializedPairs", "") ?: ""
-            if (savedPairsStr.isNotEmpty() && _currentScreen.value == AppScreen.Practice) {
+            if (savedPairsStr.isNotEmpty() && (_currentScreen.value == AppScreen.Practice || _currentScreen.value == AppScreen.Writing)) {
                 val pairs = savedPairsStr.split("\n").mapNotNull { line ->
                     val parts = line.split("||")
                     if (parts.size == 2) TranslationPair(parts[0], parts[1]) else null
@@ -1414,17 +1604,19 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                     _currentIndex.value = if (savedIndex in pairs.indices) savedIndex else 0
                     _currentDirection.value = sharedPrefs.getString("currentDirection", targetLanguage.value) ?: targetLanguage.value
                     
-                    // Delay speak slightly on restore
-                    if (quizletTtsEnabled.value) {
+                    // Delay speak slightly on restore if in Practice screen
+                    if (_currentScreen.value == AppScreen.Practice && quizletTtsEnabled.value) {
                         viewModelScope.launch {
                             delay(500)
                             speakPrompt()
                         }
                     }
-                } else {
+                } else if (_currentScreen.value == AppScreen.Practice) {
                     _currentScreen.value = AppScreen.Setup
                 }
             }
+        } else if (screenStr == AppScreen.Writing.name) {
+            _currentScreen.value = AppScreen.Writing
         }
     }
 

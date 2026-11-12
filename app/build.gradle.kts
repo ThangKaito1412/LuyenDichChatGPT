@@ -14,8 +14,8 @@ android {
     applicationId = "com.aistudio.luyendich.v2app.capnhat"
     minSdk = 24
     targetSdk = 36
-    versionCode = 7
-    versionName = "1.6"
+    versionCode = 9
+    versionName = "1.8"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

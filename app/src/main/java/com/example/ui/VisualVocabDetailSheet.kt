@@ -68,25 +68,83 @@ fun buildBingThumbUrl(keyword: String, variant: Int = 1): String {
     return "https://tse${hostIdx}.mm.bing.net/th?q=$encoded&w=320&h=240&c=7&rs=1&p=0"
 }
 
-fun highlightKeywordRed(text: String, keyword: String): AnnotatedString {
-    if (keyword.isBlank() || !text.contains(keyword)) {
+fun highlightKeywordRed(
+    text: String,
+    keyword: String,
+    extraKeywords: Set<String> = emptySet()
+): AnnotatedString {
+    if (text.isBlank()) return AnnotatedString(text)
+    val kwClean = keyword.trim()
+
+    // Build prioritized list of target tokens to highlight in red:
+    // 1. Exact keyword
+    // 2. Active study words (extraKeywords)
+    // 3. 2..4 char sub-words of a multi-word Chinese query (e.g. 圣诞快乐, 圣诞, 快乐, 祝你 from 祝你圣诞快乐)
+    // 4. Individual CJK characters from keyword if keyword is a phrase
+    val candidateTokens = LinkedHashSet<String>()
+    if (kwClean.isNotEmpty()) {
+        candidateTokens.add(kwClean)
+    }
+    extraKeywords.forEach { w ->
+        val trimmed = w.trim()
+        if (trimmed.length >= 2) candidateTokens.add(trimmed)
+    }
+    val cjkOnly = kwClean.filter { isCjk(it) }
+    if (cjkOnly.length >= 2) {
+        candidateTokens.add(cjkOnly)
+        for (len in minOf(4, cjkOnly.length) downTo 2) {
+            for (i in 0..cjkOnly.length - len) {
+                candidateTokens.add(cjkOnly.substring(i, i + len))
+            }
+        }
+        // Also highlight individual CJK root chars of the searched phrase
+        if (cjkOnly.length >= 2) {
+            for (ch in cjkOnly) {
+                candidateTokens.add(ch.toString())
+            }
+        }
+    }
+
+    val sortedTokens = candidateTokens
+        .filter { it.isNotBlank() && text.contains(it, ignoreCase = true) }
+        .sortedByDescending { it.length }
+
+    if (sortedTokens.isEmpty()) {
         return AnnotatedString(text)
     }
+
+    val highlightMap = BooleanArray(text.length)
+    for (token in sortedTokens) {
+        // For single-char tokens, only highlight CJK characters so we don't highlight random Latin letters
+        if (token.length == 1 && !isCjk(token[0])) continue
+        var startIdx = 0
+        while (startIdx < text.length) {
+            val found = text.indexOf(token, startIndex = startIdx, ignoreCase = true)
+            if (found == -1) break
+            for (k in found until (found + token.length).coerceAtMost(text.length)) {
+                highlightMap[k] = true
+            }
+            startIdx = found + token.length.coerceAtLeast(1)
+        }
+    }
+
     return buildAnnotatedString {
-        var start = 0
-        while (start < text.length) {
-            val idx = text.indexOf(keyword, startIndex = start)
-            if (idx == -1) {
-                append(text.substring(start))
-                break
+        var i = 0
+        while (i < text.length) {
+            val isRed = highlightMap[i]
+            var j = i + 1
+            while (j < text.length && highlightMap[j] == isRed) {
+                j++
             }
-            if (idx > start) {
-                append(text.substring(start, idx))
+            val segment = text.substring(i, j)
+            if (isRed) {
+                withStyle(SpanStyle(color = Color(0xFFE11D48), fontWeight = FontWeight.ExtraBold)) {
+                    append(segment)
+                }
+            } else {
+                append(segment)
             }
-            withStyle(SpanStyle(color = Color(0xFFE11D48), fontWeight = FontWeight.ExtraBold)) {
-                append(keyword)
-            }
-            start = idx + keyword.length
+            i = j
         }
     }
 }
@@ -97,7 +155,8 @@ fun buildExamplesForVocab(
 ): List<ExampleSentenceItem> {
     val kw = vocab.hanzi.trim()
     val p = vocab.pinyin.ifBlank { kw }
-    val viLower = vocab.vi.trim().lowercase()
+    val correctedVi = TwoWayTranslatorEngine.autoCorrectVietnameseText(vocab.vi.trim(), allStudySets)
+    val viLower = correctedVi.replaceFirstChar { it.lowercase() }
     val results = ArrayList<ExampleSentenceItem>(6)
 
     // 1. Search real sentences from the 338 study sets containing this Hanzi word
@@ -148,10 +207,10 @@ fun buildExamplesForVocab(
 
     results.add(
         ExampleSentenceItem(
-            zhSimplified = "在日常生活中，“$kw”是一个很常用的词。",
-            zhBracketed = "[在日常生活中，“$kw”是一個很常用的詞。]",
-            pinyin = "Zài rìcháng shēnghuó zhōng, \"$p\" shì yīgè hěn chángyòng de cí.",
-            vi = "Trong đời sống hàng ngày, \"$kw\" ($viLower) là một từ rất thông dụng."
+            zhSimplified = "在日常生活中，“$kw”是一个很常用的表达。",
+            zhBracketed = "[在日常生活中，“$kw”是一個很常用的表達。]",
+            pinyin = "Zài rìcháng shēnghuó zhōng, \"$p\" shì yīgè hěn chángyòng de biǎodá.",
+            vi = "Trong đời sống hàng ngày, \"$kw\" ($viLower) là một cách diễn đạt rất thông dụng."
         )
     )
     results.add(
@@ -167,7 +226,7 @@ fun buildExamplesForVocab(
             zhSimplified = "请用“$kw”造一个完整的句子。",
             zhBracketed = "[請用“$kw”造一個完整的句子。]",
             pinyin = "Qǐng yòng \"$p\" zào yīgè wánzhěng de jùzi.",
-            vi = "Hãy dùng từ \"$kw\" ($viLower) để đặt một câu hoàn chỉnh."
+            vi = "Hãy dùng \"$kw\" ($viLower) để đặt một câu hoàn chỉnh."
         )
     )
 
@@ -194,6 +253,25 @@ fun VisualVocabDetailDialog(
         activeEntry.hanzi.trim().ifEmpty { activeEntry.vi.trim() }
     }
 
+    // Auto-correct any Vietnamese typos / Telex / unaccented input so the UI always displays clean Vietnamese
+    val cleanVi = remember(activeEntry.vi, allStudySets) {
+        TwoWayTranslatorEngine.autoCorrectVietnameseText(activeEntry.vi.trim(), allStudySets)
+    }
+
+    // Collect words currently being studied in the active lesson + starred words for Hanzii red highlighting
+    val activeStudyHanziSet = remember(viewModel.rawTextContent.value, starredPairs) {
+        val set = HashSet<String>()
+        parseEditableVocabItems(viewModel.rawTextContent.value).forEach { item ->
+            val hz = item.hanzi.trim()
+            if (hz.isNotEmpty()) set.add(hz)
+        }
+        starredPairs.forEach { pair ->
+            val cjk = pair.foreign.filter { isCjk(it) }
+            if (cjk.isNotEmpty()) set.add(cjk)
+        }
+        set
+    }
+
     var selectedTag by remember(cleanHanzi) {
         mutableStateOf(viewModel.getWordPersonalTag(cleanHanzi))
     }
@@ -203,13 +281,46 @@ fun VisualVocabDetailDialog(
 
     val isStarred = remember(activeEntry, starredPairs) {
         starredPairs.any {
-            it.vi.trim().equals(activeEntry.vi.trim(), ignoreCase = true) &&
+            it.vi.trim().equals(cleanVi, ignoreCase = true) ||
+                it.vi.trim().equals(activeEntry.vi.trim(), ignoreCase = true) ||
                 it.foreign.contains(cleanHanzi)
         }
     }
 
-    val exampleSentences = remember(activeEntry, allStudySets) {
-        buildExamplesForVocab(activeEntry, allStudySets)
+    val savedDateStr = remember(cleanHanzi, viewModel.vocabStatusVersion.value) {
+        viewModel.getWordSavedDateFormatted(cleanHanzi)
+    }
+
+    val popularityInfo = remember(cleanHanzi, allStudySets) {
+        WordFamilyClusterRepository.evaluateWordPopularity(cleanHanzi, allStudySets)
+    }
+
+    var exampleSentences by remember(activeEntry, allStudySets) {
+        mutableStateOf(buildExamplesForVocab(activeEntry.copy(vi = cleanVi), allStudySets))
+    }
+    var substitutableWords by remember(activeEntry) {
+        mutableStateOf<List<SubstitutableWordItem>>(emptyList())
+    }
+    var isLoadingOnlineExamples by remember(activeEntry) { mutableStateOf(false) }
+
+    LaunchedEffect(activeEntry.hanzi, cleanVi) {
+        if (cleanHanzi.isNotBlank()) {
+            isLoadingOnlineExamples = true
+            val (onlineEx, onlineSub) = TwoWayTranslatorEngine.fetchOnlineExamplesAndSubstitutes(
+                hanzi = cleanHanzi,
+                pinyin = activeEntry.pinyin,
+                vi = cleanVi,
+                allStudySets = allStudySets
+            )
+            val combined = (onlineEx + buildExamplesForVocab(activeEntry.copy(vi = cleanVi), allStudySets))
+                .distinctBy { it.zhSimplified }
+                .take(6)
+            if (combined.isNotEmpty()) {
+                exampleSentences = combined
+            }
+            substitutableWords = onlineSub
+            isLoadingOnlineExamples = false
+        }
     }
 
     val siblings = remember(activeEntry, relatedEntries) {
@@ -313,40 +424,106 @@ fun VisualVocabDetailDialog(
                                         fontWeight = FontWeight.Medium
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
-                                    Row(
-                                        verticalAlignment = Alignment.Bottom,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
+                                    val hanziFontSize = when {
+                                        cleanHanzi.length <= 4 -> 28.sp
+                                        cleanHanzi.length <= 8 -> 22.sp
+                                        else -> 18.sp
+                                    }
+                                    val hanziLineHeight = when {
+                                        cleanHanzi.length <= 4 -> 34.sp
+                                        cleanHanzi.length <= 8 -> 28.sp
+                                        else -> 24.sp
+                                    }
+                                    if (cleanHanzi.length <= 2 && activeEntry.pinyin.length <= 10) {
+                                        Row(
+                                            verticalAlignment = Alignment.Bottom,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = cleanHanzi,
+                                                fontSize = hanziFontSize,
+                                                lineHeight = hanziLineHeight,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFF1C1917)
+                                            )
+                                            if (activeEntry.pinyin.isNotBlank()) {
+                                                Text(
+                                                    text = "[${activeEntry.pinyin}]",
+                                                    fontSize = 15.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF9A3412),
+                                                    modifier = Modifier.padding(bottom = 3.dp)
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        // Stack Hanzi and Pinyin vertically for longer words/sentences so Pinyin never wraps vertically
                                         Text(
                                             text = cleanHanzi,
-                                            fontSize = 30.sp,
+                                            fontSize = hanziFontSize,
+                                            lineHeight = hanziLineHeight,
                                             fontWeight = FontWeight.ExtraBold,
                                             color = Color(0xFF1C1917)
                                         )
                                         if (activeEntry.pinyin.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(3.dp))
                                             Text(
                                                 text = "[${activeEntry.pinyin}]",
-                                                fontSize = 15.sp,
+                                                fontSize = 14.sp,
+                                                lineHeight = 19.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF9A3412),
-                                                modifier = Modifier.padding(bottom = 4.dp)
+                                                color = Color(0xFF9A3412)
                                             )
                                         }
                                     }
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = activeEntry.vi,
+                                        text = cleanVi,
                                         fontSize = 15.sp,
+                                        lineHeight = 20.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF292524)
                                     )
+                                    if (!cleanVi.equals(activeEntry.vi.trim(), ignoreCase = true) && activeEntry.vi.isNotBlank()) {
+                                        Text(
+                                            text = "✨ Đã tự động sửa chính tả từ: “${activeEntry.vi.trim()}”",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFF16A34A)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    // Popularity Rating & Saved Date Row
+                                    val (starsCount, freqPercent, popDesc) = popularityInfo
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = Color(0xFFFEF3C7),
+                                        border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.6f))
+                                    ) {
+                                        Text(
+                                            text = "🔥 Mức độ phổ biến: ${"⭐".repeat(starsCount)} ($freqPercent%) • $popDesc",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF92400E),
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        )
+                                    }
+                                    if (savedDateStr.isNotBlank()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "📅 Ngày đã lưu: $savedDateStr • Nhãn: $selectedTag",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFF0369A1)
+                                        )
+                                    }
                                 }
 
                                 // Dynamic Image Thumbnail by URL concatenation with Hanzi
                                 Box(
                                     modifier = Modifier
-                                        .width(120.dp)
-                                        .height(92.dp)
+                                        .width(104.dp)
+                                        .height(84.dp)
                                         .clip(RoundedCornerShape(14.dp))
                                         .background(Color(0xFFF5F5F4))
                                         .border(1.dp, Color(0xFFE7E5E4), RoundedCornerShape(14.dp))
@@ -536,7 +713,13 @@ fun VisualVocabDetailDialog(
                                             Surface(
                                                 modifier = Modifier.clickable {
                                                     selectedTag = tag
-                                                    viewModel.saveWordPersonalNoteAndTag(cleanHanzi, tag, personalNote)
+                                                    viewModel.saveWordPersonalNoteAndTag(
+                                                        hanziKey = cleanHanzi,
+                                                        tag = tag,
+                                                        note = personalNote,
+                                                        vi = activeEntry.vi,
+                                                        foreign = activeEntry.fullForeign
+                                                    )
                                                 },
                                                 shape = RoundedCornerShape(8.dp),
                                                 color = if (isSelected) Color(0xFFFEF3C7) else Color.White,
@@ -581,7 +764,13 @@ fun VisualVocabDetailDialog(
                                         )
                                         Button(
                                             onClick = {
-                                                viewModel.saveWordPersonalNoteAndTag(cleanHanzi, selectedTag, personalNote)
+                                                viewModel.saveWordPersonalNoteAndTag(
+                                                    hanziKey = cleanHanzi,
+                                                    tag = selectedTag,
+                                                    note = personalNote,
+                                                    vi = activeEntry.vi,
+                                                    foreign = activeEntry.fullForeign
+                                                )
                                                 if (personalNote.isNotBlank()) {
                                                     viewModel.saveQuickVocabOrNote(
                                                         isNoteType = true,
@@ -592,7 +781,8 @@ fun VisualVocabDetailDialog(
                                                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                                                     }
                                                 } else {
-                                                    Toast.makeText(context, "Đã lưu nhãn '$selectedTag' cho từ $cleanHanzi!", Toast.LENGTH_SHORT).show()
+                                                    val nowStr = viewModel.getWordSavedDateFormatted(cleanHanzi)
+                                                    Toast.makeText(context, "Đã lưu nhãn '$selectedTag' cho $cleanHanzi (Ngày: $nowStr)!", Toast.LENGTH_SHORT).show()
                                                 }
                                             },
                                             colors = ButtonDefaults.buttonColors(
@@ -745,13 +935,35 @@ fun VisualVocabDetailDialog(
                                 color = Color(0xFFFAF8F5),
                                 border = BorderStroke(1.dp, Color(0xFFE7E5E4))
                             ) {
-                                Text(
-                                    text = "Từ “$cleanHanzi” (${activeEntry.pinyin.ifBlank { cleanHanzi }}) có nghĩa là “${activeEntry.vi}”, xuất hiện tại ${activeEntry.lessonTitle}. Thường kết hợp trực tiếp trong câu giao tiếp hàng ngày và bài tập dịch Việt – Trung của bài học.",
-                                    fontSize = 12.sp,
-                                    color = Color(0xFF57534E),
-                                    lineHeight = 18.sp,
-                                    modifier = Modifier.padding(12.dp)
-                                )
+                                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(
+                                        text = "Từ “$cleanHanzi” (${activeEntry.pinyin.ifBlank { cleanHanzi }}) có nghĩa là “$cleanVi”, xuất hiện tại ${activeEntry.lessonTitle}. Các từ đang tra cứu và từ vựng đang học được tô đỏ nổi bật giống từ điển Hanzii.",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF57534E),
+                                        lineHeight = 18.sp
+                                    )
+                                    if (isLoadingOnlineExamples) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            CircularProgressIndicator(modifier = Modifier.size(13.dp), strokeWidth = 1.8.dp)
+                                            Text(
+                                                text = "🌐 Đang tải thêm câu ví dụ & từ thay thế Online...",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF0284C7),
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = "🌐 Đã đồng bộ câu ví dụ thực tế (Online + Kho ngữ liệu Hanzii • Đã tô đỏ từ tra cứu & đang học)",
+                                            fontSize = 10.5.sp,
+                                            color = Color(0xFF16A34A),
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
                             }
 
                             // Example Sentence List
@@ -793,25 +1005,25 @@ fun VisualVocabDetailDialog(
                                             verticalArrangement = Arrangement.spacedBy(3.dp)
                                         ) {
                                             Text(
-                                                text = highlightKeywordRed(ex.zhSimplified, cleanHanzi),
+                                                text = highlightKeywordRed(ex.zhSimplified, cleanHanzi, activeStudyHanziSet),
                                                 fontSize = 15.5.sp,
                                                 fontWeight = FontWeight.ExtraBold,
                                                 color = Color(0xFF1C1917)
                                             )
                                             Text(
-                                                text = highlightKeywordRed(ex.zhBracketed, cleanHanzi),
+                                                text = highlightKeywordRed(ex.zhBracketed, cleanHanzi, activeStudyHanziSet),
                                                 fontSize = 12.5.sp,
                                                 color = Color(0xFF78716C)
                                             )
                                             if (ex.pinyin.isNotBlank()) {
                                                 Text(
-                                                    text = ex.pinyin,
+                                                    text = highlightKeywordRed(ex.pinyin, activeEntry.pinyin),
                                                     fontSize = 12.sp,
                                                     color = Color(0xFF78716C)
                                                 )
                                             }
                                             Text(
-                                                text = ex.vi,
+                                                text = highlightKeywordRed(ex.vi, cleanVi, setOf(cleanHanzi)),
                                                 fontSize = 13.5.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color(0xFF1C1917)
@@ -853,6 +1065,44 @@ fun VisualVocabDetailDialog(
                             }
                         }
                     }
+
+                    // 3.5. TỪ VỰNG & CÂU CÓ THỂ THAY THẾ (Substitutable Words & Sentences + Popularity)
+                    SubstitutableWordsAndSentencesCard(
+                        currentWordHanzi = cleanHanzi,
+                        currentWordVi = cleanVi,
+                        substitutes = substitutableWords,
+                        viewModel = viewModel,
+                        onSelectSubstitute = { sub ->
+                            activeEntry = VisualVocabEntry(
+                                indexInBook = activeEntry.indexInBook,
+                                hanzi = sub.hanzi,
+                                pinyin = sub.pinyin,
+                                vi = sub.vi,
+                                lessonTitle = "Từ thay thế của $cleanHanzi",
+                                studySet = activeEntry.studySet
+                            )
+                        },
+                        onRequestMultiFolderSave = onRequestMultiFolderSave
+                    )
+
+                    // 3.8. HỌC THEO CỤM NHIỀU TỪ GỐC CHỮ HÁN (Được sắp xếp ở gần cuối bảng tra cứu theo yêu cầu)
+                    WordFamilyClusterSectionCard(
+                        currentWordHanzi = cleanHanzi,
+                        currentWordPinyin = activeEntry.pinyin,
+                        allStudySets = allStudySets,
+                        viewModel = viewModel,
+                        onSelectClusterWord = { node ->
+                            activeEntry = VisualVocabEntry(
+                                indexInBook = activeEntry.indexInBook,
+                                hanzi = node.hanzi,
+                                pinyin = node.pinyin,
+                                vi = node.vi,
+                                lessonTitle = "Cụm từ gốc chữ Hán",
+                                studySet = activeEntry.studySet
+                            )
+                        },
+                        onRequestMultiFolderSave = onRequestMultiFolderSave
+                    )
 
                     // 4. TỪ ĐỒNG NGHĨA & TỪ VỰNG LIÊN QUAN (Matches image_84a0b213.png)
                     if (siblings.isNotEmpty()) {
@@ -959,6 +1209,7 @@ fun VisualBookDictionaryDialog(
     onRequestMultiFolderSave: (vi: String, foreign: String) -> Unit
 ) {
     val context = LocalContext.current
+    val starredPairs by viewModel.allStarredPairs.collectAsState()
     var isIllustratedView by remember { mutableStateOf(true) } // true = Có ảnh minh họa, false = Dạng danh sách
     var showPinyin by remember { mutableStateOf(true) }
     var showMeaning by remember { mutableStateOf(true) }
@@ -1289,6 +1540,13 @@ fun VisualBookDictionaryDialog(
 
                     itemsIndexed(displayed, key = { _, item -> "${item.indexInBook}_${item.hanzi}" }) { _, entry ->
                         val enc = URLEncoder.encode(entry.hanzi.ifBlank { entry.vi }, "UTF-8")
+                        val isEntryStarred = starredPairs.any {
+                            it.vi.trim().equals(entry.vi.trim(), ignoreCase = true) ||
+                                (entry.hanzi.isNotBlank() && it.foreign.contains(entry.hanzi))
+                        }
+                        val entrySavedDate = remember(entry.hanzi, viewModel.vocabStatusVersion.value) {
+                            viewModel.getWordSavedDateFormatted(entry.hanzi)
+                        }
                         if (isIllustratedView) {
                             // ILLUSTRATED CARD MODE (Matches image_c4fef58f.png)
                             Card(
@@ -1351,6 +1609,15 @@ fun VisualBookDictionaryDialog(
                                                     fontWeight = FontWeight.SemiBold,
                                                     color = Color(0xFF292524)
                                                 )
+                                                if (entrySavedDate.isNotBlank()) {
+                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Text(
+                                                        text = "📅 Đã lưu: $entrySavedDate",
+                                                        fontSize = 10.sp,
+                                                        color = Color(0xFF0369A1),
+                                                        fontWeight = FontWeight.SemiBold
+                                                    )
+                                                }
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 Surface(
                                                     modifier = Modifier.clickable {
@@ -1408,7 +1675,7 @@ fun VisualBookDictionaryDialog(
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    // Footer row: Từ #1 • Bài học ... | [🔊 Nghe] [🔖]
+                                    // Footer row: Từ #1 • Bài học ... | [⭐ Sao] [🔊 Nghe] [🔖]
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -1422,7 +1689,34 @@ fun VisualBookDictionaryDialog(
                                             overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.weight(1f)
                                         )
-                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Surface(
+                                                modifier = Modifier.clickable {
+                                                    viewModel.toggleStar(entry.vi, entry.fullForeign, "zh")
+                                                },
+                                                shape = RoundedCornerShape(10.dp),
+                                                color = if (isEntryStarred) Color(0xFFFEF3C7) else Color.White,
+                                                border = BorderStroke(1.dp, if (isEntryStarred) Color(0xFFF59E0B) else Color(0xFFE7E5E4))
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                                ) {
+                                                    Icon(
+                                                        if (isEntryStarred) Icons.Default.Star else Icons.Default.StarBorder,
+                                                        contentDescription = "Gắn sao",
+                                                        tint = if (isEntryStarred) Color(0xFFF59E0B) else Color(0xFF78716C),
+                                                        modifier = Modifier.size(15.dp)
+                                                    )
+                                                    Text(
+                                                        text = if (isEntryStarred) "Đã sao" else "Sao",
+                                                        fontSize = 10.5.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = if (isEntryStarred) Color(0xFF92400E) else Color(0xFF57534E)
+                                                    )
+                                                }
+                                            }
                                             Surface(
                                                 modifier = Modifier.clickable {
                                                     viewModel.speakText(entry.hanzi, "zh")
@@ -1502,14 +1796,31 @@ fun VisualBookDictionaryDialog(
                                             color = Color(0xFF292524)
                                         )
                                         Text(
-                                            text = entry.lessonTitle,
+                                            text = if (entrySavedDate.isNotBlank()) "${entry.lessonTitle} • 📅 $entrySavedDate" else entry.lessonTitle,
                                             fontSize = 10.sp,
                                             color = Color(0xFF78716C),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                     }
-                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Surface(
+                                            modifier = Modifier.clickable {
+                                                viewModel.toggleStar(entry.vi, entry.fullForeign, "zh")
+                                            },
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = if (isEntryStarred) Color(0xFFFEF3C7) else Color.White,
+                                            border = BorderStroke(1.dp, if (isEntryStarred) Color(0xFFF59E0B) else Color(0xFFD6D3D1))
+                                        ) {
+                                            Icon(
+                                                if (isEntryStarred) Icons.Default.Star else Icons.Default.StarBorder,
+                                                contentDescription = "Gắn sao",
+                                                tint = if (isEntryStarred) Color(0xFFF59E0B) else Color(0xFF78716C),
+                                                modifier = Modifier
+                                                    .padding(4.dp)
+                                                    .size(15.dp)
+                                            )
+                                        }
                                         Surface(
                                             modifier = Modifier.clickable { viewModel.speakText(entry.hanzi, "zh") },
                                             shape = RoundedCornerShape(10.dp),
@@ -1520,22 +1831,6 @@ fun VisualBookDictionaryDialog(
                                                 text = "🔊",
                                                 fontSize = 11.sp,
                                                 modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
-                                            )
-                                        }
-                                        Surface(
-                                            modifier = Modifier.clickable {
-                                                onOpenWebUrl("https://hanzii.net/search/word/$enc?hl=vi")
-                                            },
-                                            shape = RoundedCornerShape(10.dp),
-                                            color = Color.White,
-                                            border = BorderStroke(1.dp, Color(0xFFF59E0B))
-                                        ) {
-                                            Text(
-                                                text = "Hanzii",
-                                                fontSize = 10.5.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF92400E),
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
                                             )
                                         }
                                         Surface(

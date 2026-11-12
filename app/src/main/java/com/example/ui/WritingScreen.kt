@@ -779,21 +779,41 @@ fun WritingScreen(viewModel: TranslationViewModel) {
             }
         }
     }
-    var selectedDeckId by remember(decks) { mutableStateOf(decks.firstOrNull()?.id ?: -2L) }
+    val writingStatePrefs = remember { context.getSharedPreferences("WritingStatePrefs", android.content.Context.MODE_PRIVATE) }
+    var selectedDeckId by remember {
+        val savedId = writingStatePrefs.getLong("selected_deck_id", -999L)
+        mutableStateOf(savedId)
+    }
+    LaunchedEffect(decks) {
+        if (decks.isNotEmpty() && decks.none { it.id == selectedDeckId }) {
+            selectedDeckId = decks.first().id
+            writingStatePrefs.edit().putLong("selected_deck_id", selectedDeckId).apply()
+        }
+    }
     var onlyStarred by remember { mutableStateOf(false) }
-    val allDeckWords = remember(selectedDeckId, decks, viewModel.isShuffle.value) {
-        decks.firstOrNull { it.id == selectedDeckId }?.let { val words = parseStudyWords(it.rawContent); if (it.id != -3L && viewModel.isShuffle.value) words.shuffled() else words } ?: emptyList()
+    // Giữ thứ tự từ ổn định trong Luyện viết để khi quay lại từ trình chọn ảnh không bị xáo trộn sang từ khác
+    val allDeckWords = remember(selectedDeckId, decks) {
+        decks.firstOrNull { it.id == selectedDeckId }?.let { parseStudyWords(it.rawContent) } ?: emptyList()
     }
 
     val deckWords = remember(allDeckWords, onlyStarred, starredPairs) {
         if (!onlyStarred) allDeckWords else allDeckWords.filter { w -> starredPairs.any { it.vi == w.rawVi && it.foreign == w.rawForeign } }
     }
     var word by remember {
-        mutableStateOf(viewModel.writingWord.value.ifBlank { "" })
+        val initial = viewModel.writingWord.value.ifBlank {
+            writingStatePrefs.getString("locked_tip_word", "")?.takeIf { writingStatePrefs.getBoolean("tip_dialog_open", false) }
+                ?: writingStatePrefs.getString("current_word", "").orEmpty()
+        }
+        mutableStateOf(initial)
     }
     LaunchedEffect(deckWords) {
-        if (word.isBlank() || deckWords.none { it.hanzi == word }) {
-            word = deckWords.firstOrNull()?.hanzi.orEmpty()
+        // Chỉ lấy từ đầu tiên nếu hiện tại chưa có từ nào (word đang trống).
+        // Tuyệt đối không ghi đè word đã chọn khi quay về từ trình chọn ảnh cục bộ!
+        if (word.isBlank() && deckWords.isNotEmpty()) {
+            val w = deckWords.first().hanzi
+            word = w
+            viewModel.writingWord.value = w
+            writingStatePrefs.edit().putString("current_word", w).apply()
         }
     }
     val chars = remember(word) { word.filter { isCjk(it) }.map { it.toString() } }
@@ -803,6 +823,11 @@ fun WritingScreen(viewModel: TranslationViewModel) {
     }
     LaunchedEffect(word, selectedDeckId) {
         startAtLast = false
+        if (word.isNotBlank()) {
+            viewModel.writingWord.value = word
+            writingStatePrefs.edit().putString("current_word", word).apply()
+            viewModel.saveWritingPrefs()
+        }
         if (selectedDeckId == -3L) allDeckWords.firstOrNull { it.hanzi == word }?.let {
             viewModel.syncWritingPosition(it.rawVi, it.rawForeign)
         }
@@ -812,7 +837,12 @@ fun WritingScreen(viewModel: TranslationViewModel) {
     var autoCycle by remember { mutableIntStateOf(0) }
     var autoBlur by remember { mutableStateOf<Int?>(null) }
     var showSettings by remember { mutableStateOf(false) }
-    var showTip by remember { mutableStateOf(false) }
+    var showTip by remember { mutableStateOf(writingStatePrefs.getBoolean("tip_dialog_open", false)) }
+    var tipTargetWord by remember {
+        mutableStateOf(
+            writingStatePrefs.getString("locked_tip_word", "")?.takeIf { it.isNotBlank() } ?: word
+        )
+    }
     val blurMode = autoBlur ?: if (autoWriting && options.autoHide && options.output == 2) 2 else viewModel.writingBlurMode.value
     val blurChars = (blurMode == 1 || blurMode == 3)
     val hideSub = (blurMode == 2 || blurMode == 3)
@@ -865,6 +895,7 @@ fun WritingScreen(viewModel: TranslationViewModel) {
     fun setWord(newWord: String) {
         word = newWord
         viewModel.writingWord.value = newWord
+        writingStatePrefs.edit().putString("current_word", newWord).apply()
         if (selectedDeckId == -3L) allDeckWords.firstOrNull { it.hanzi == newWord }?.let {
             viewModel.syncWritingPosition(it.rawVi, it.rawForeign)
         }
@@ -1223,7 +1254,15 @@ fun WritingScreen(viewModel: TranslationViewModel) {
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(colors.surfaceVariant.copy(alpha = 0.7f))
-                                .clickable { showTip = true },
+                                .clickable {
+                                    tipTargetWord = word
+                                    writingStatePrefs.edit()
+                                        .putString("locked_tip_word", word)
+                                        .putString("current_word", word)
+                                        .putBoolean("tip_dialog_open", true)
+                                        .apply()
+                                    showTip = true
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -1580,7 +1619,16 @@ fun WritingScreen(viewModel: TranslationViewModel) {
         onSpeak = { viewModel.writingAutoSpeak.value = it; viewModel.saveWritingPrefs() },
         onDismiss = { showSettings = false }
     )
-    if (showTip) MemoryTipDialog(word, { showTip = false })
+    if (showTip) {
+        val activeTipWord = tipTargetWord.ifBlank { word }
+        MemoryTipDialog(
+            word = activeTipWord,
+            onDismiss = {
+                writingStatePrefs.edit().putBoolean("tip_dialog_open", false).apply()
+                showTip = false
+            }
+        )
+    }
 
     if (showPicker) {
         WordPickerSheet(
@@ -1590,7 +1638,10 @@ fun WritingScreen(viewModel: TranslationViewModel) {
             folders = folders,
             decks = decks,
             selectedDeckId = selectedDeckId,
-            onDeckSelected = { selectedDeckId = it },
+            onDeckSelected = {
+                selectedDeckId = it
+                writingStatePrefs.edit().putLong("selected_deck_id", it).apply()
+            },
             words = deckWords,
             currentWord = word,
             starred = starredPairs,
