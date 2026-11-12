@@ -87,19 +87,53 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     private val _practicedIndices = MutableStateFlow<Set<Int>>(emptySet())
     val practicedIndices: StateFlow<Set<Int>> = _practicedIndices.asStateFlow()
 
-    fun createFolder(name: String) {
+    // Số lượng từ học mỗi phiên/bài (0 = Tất cả, >0 = giới hạn số từ lấy theo thứ tự hoặc ngẫu nhiên)
+    val studyWordCountLimit = mutableStateOf(0)
+
+    fun setStudyWordCountLimit(limit: Int) {
+        val clean = limit.coerceAtLeast(0)
+        studyWordCountLimit.value = clean
+        getApplication<Application>().getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
+            .edit().putInt("study_word_count_limit", clean).apply()
+    }
+
+    fun createFolder(name: String, onCreated: ((Long) -> Unit)? = null) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.insertFolder(Folder(name = name))
+            val id = repository.insertFolder(Folder(name = name))
+            withContext(Dispatchers.Main) {
+                onCreated?.invoke(id)
+            }
         }
     }
 
-    fun deleteFolder(folder: Folder) {
+    fun deleteFolder(folder: Folder, onResult: ((Boolean, String) -> Unit)? = null) {
+        val app = getApplication<Application>()
+        if (BuiltinLibraryCatalog.isProtectedFolder(folder.name)) {
+            val msg = "Không thể xóa thư mục mặc định '${folder.name}'. Bộ dữ liệu sách & từ vựng có sẵn được bảo vệ!"
+            LockscreenService.sendSystemAlertNotification(app, "Bảo vệ dữ liệu gốc", msg)
+            onResult?.invoke(false, msg)
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteFolder(folder)
+            val msg = "Đã xóa thư mục '${folder.name}' khỏi hệ thống."
+            withContext(Dispatchers.Main) {
+                LockscreenService.sendSystemAlertNotification(app, "Đã xóa thư mục", msg)
+                onResult?.invoke(true, msg)
+            }
         }
     }
 
     fun renameFolder(folder: Folder, newName: String) {
+        if (BuiltinLibraryCatalog.isProtectedFolder(folder.name)) {
+            val app = getApplication<Application>()
+            LockscreenService.sendSystemAlertNotification(
+                app,
+                "Bảo vệ thư mục gốc",
+                "Thư mục mặc định '${folder.name}' không thể đổi tên."
+            )
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateFolder(folder.copy(name = newName, lastModified = System.currentTimeMillis()))
         }
@@ -182,8 +216,25 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     private val _isTtsReady = MutableStateFlow(false)
     val isTtsReady: StateFlow<Boolean> = _isTtsReady.asStateFlow()
 
-    // Lockscreen Toggle State
+    // Lockscreen & Passive Learning Toggle States
     val isLockscreenEnabled = mutableStateOf(false)
+    val isPassiveNotifEnabled = mutableStateOf(false)
+    val passiveAutoIntervalSec = mutableStateOf(0)
+    val passiveAutoSpeak = mutableStateOf(false)
+    val lockscreenPopupEnabled = mutableStateOf(true)
+
+    // Quizlet Flashcard Sorting Mode States
+    val quizletSortingEnabled = mutableStateOf(false)
+    val quizletTtsEnabled = mutableStateOf(true)
+    val quizletFrontLang = mutableStateOf("zh") // "zh" (Foreign) or "vi" (Vietnamese)
+    private val _memorizedIndices = MutableStateFlow<Set<Int>>(emptySet())
+    val memorizedIndices: StateFlow<Set<Int>> = _memorizedIndices.asStateFlow()
+    private val _stillLearningIndices = MutableStateFlow<Set<Int>>(emptySet())
+    val stillLearningIndices: StateFlow<Set<Int>> = _stillLearningIndices.asStateFlow()
+    private val _isQuizletCompleted = MutableStateFlow(false)
+    val isQuizletCompleted: StateFlow<Boolean> = _isQuizletCompleted.asStateFlow()
+
+    val isImportingLibrary = mutableStateOf(false)
 
     // Setup Form Settings
     val rawTextContent = mutableStateOf("")
@@ -235,9 +286,14 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     private var autoAdvanceJob: Job? = null
 
     init {
-        // Prepopulate database with default items on start
+        // Prepopulate database with default items and builtin library on start
         viewModelScope.launch(Dispatchers.IO) {
-            repository.prePopulatePresets()
+            isImportingLibrary.value = true
+            try {
+                repository.prePopulatePresets(application)
+            } finally {
+                isImportingLibrary.value = false
+            }
         }
         loadStudyState()
         
@@ -415,12 +471,17 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
 
+        val limit = studyWordCountLimit.value
+        if (limit > 0 && finalPairs.size > limit) {
+            finalPairs = finalPairs.take(limit)
+        }
+
         if (finalPairs.isEmpty()) {
             return false
         }
 
-        _practicePairs.value = finalPairs
         _currentIndex.value = 0
+        _practicePairs.value = finalPairs
         _currentScreen.value = AppScreen.Practice
         _feedback.value = FeedbackState.Idle
         userAnswerInput.value = ""
@@ -428,6 +489,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         stopPromptAudioLoop()
         isSpeechRecognitionActive.value = false // Defensively turn off mic auto-activation on startup
         _practicedIndices.value = emptySet()
+        _memorizedIndices.value = emptySet()
+        _stillLearningIndices.value = emptySet()
+        _isQuizletCompleted.value = false
 
         displayItem()
         return true
@@ -447,8 +511,13 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun displayItem() {
-        if (_practicePairs.value.isEmpty()) return
-        val currentPair = _practicePairs.value[_currentIndex.value]
+        val pairs = _practicePairs.value
+        if (pairs.isEmpty()) return
+        val safeIdx = _currentIndex.value.coerceIn(0, pairs.lastIndex)
+        if (safeIdx != _currentIndex.value) {
+            _currentIndex.value = safeIdx
+        }
+        val currentPair = pairs[safeIdx]
 
         // Decide actual direction based on settings
         val chosenDir = when (practiceMode.value) {
@@ -479,8 +548,8 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
 
         saveStudyState()
 
-        // Speak the prompt text after a short layout delay (ONLY if not auto-playing!)
-        if (!_isAutoPlaying.value) {
+        // Speak the prompt text after a short layout delay (ONLY if not auto-playing and TTS toggle is on!)
+        if (!_isAutoPlaying.value && quizletTtsEnabled.value) {
             viewModelScope.launch {
                 delay(150)
                 speakPrompt()
@@ -489,8 +558,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun speakPrompt() {
-        if (_practicePairs.value.isEmpty()) return
-        val item = _practicePairs.value[_currentIndex.value]
+        val pairs = _practicePairs.value
+        if (pairs.isEmpty()) return
+        val item = pairs[_currentIndex.value.coerceIn(0, pairs.lastIndex)]
         val textToSpeak = if (_currentDirection.value == "vi") item.vi else item.foreign
         val lang = if (_currentDirection.value == "vi") "vi" else targetLanguage.value
         viewModelScope.launch {
@@ -507,8 +577,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun getCorrectAnswer(): String? {
-        if (_practicePairs.value.isEmpty()) return null
-        val item = _practicePairs.value[_currentIndex.value]
+        val pairs = _practicePairs.value
+        if (pairs.isEmpty()) return null
+        val item = pairs[_currentIndex.value.coerceIn(0, pairs.lastIndex)]
         return if (_currentDirection.value == "vi") item.foreign else item.vi
     }
 
@@ -552,8 +623,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun startPromptAudioLoop() {
-        if (_practicePairs.value.isEmpty()) return
-        val item = _practicePairs.value[_currentIndex.value]
+        val pairs = _practicePairs.value
+        if (pairs.isEmpty()) return
+        val item = pairs[_currentIndex.value.coerceIn(0, pairs.lastIndex)]
         val textToSpeak = if (_currentDirection.value == "vi") item.vi else item.foreign
         val lang = if (_currentDirection.value == "vi") "vi" else targetLanguage.value
         _isPromptAudioLooping.value = true
@@ -708,11 +780,12 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         autoPlayJob?.cancel()
         autoPlayJob = viewModelScope.launch {
             while (_isAutoPlaying.value) {
-                if (_practicePairs.value.isEmpty()) {
+                val pairs = _practicePairs.value
+                if (pairs.isEmpty()) {
                     delay(2000)
                     continue
                 }
-                val item = _practicePairs.value[_currentIndex.value]
+                val item = pairs[_currentIndex.value.coerceIn(0, pairs.lastIndex)]
                 val promptText = if (_currentDirection.value == "vi") item.vi else item.foreign
                 val promptLang = if (_currentDirection.value == "vi") "vi" else targetLanguage.value
                 
@@ -918,11 +991,288 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun deleteStudySet(studySet: StudySet) {
-        if (studySet.isPreset) return // Avoid deleting presets
+    fun deleteStudySet(studySet: StudySet, onResult: ((Boolean, String) -> Unit)? = null) {
+        val app = getApplication<Application>()
+        if (BuiltinLibraryCatalog.isProtectedStudySet(studySet, allFolders.value)) {
+            val msg = "Không thể xóa bài học gốc '${studySet.title}'. Bộ dữ liệu sách & từ vựng có sẵn được bảo vệ!"
+            LockscreenService.sendSystemAlertNotification(app, "Bảo vệ bộ dữ liệu có sẵn", msg)
+            onResult?.invoke(false, msg)
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.delete(studySet)
+            val msg = "Đã xóa bài học '${studySet.title}' thành công."
+            withContext(Dispatchers.Main) {
+                LockscreenService.sendSystemAlertNotification(app, "Đã xóa bài học", msg)
+                onResult?.invoke(true, msg)
+            }
         }
+    }
+
+    fun saveWordToMultipleFoldersAndSets(
+        vi: String,
+        foreign: String,
+        selectedFolderIds: Set<Long>,
+        selectedSetIds: Set<Long>,
+        onDone: (String) -> Unit
+    ) {
+        val cleanLine = "${vi.trim()} = ${foreign.trim()}"
+        viewModelScope.launch(Dispatchers.IO) {
+            var savedCount = 0
+            val currentSets = allStudySets.value
+            val currentFolders = allFolders.value
+
+            // 1. Save to explicitly selected StudySets
+            for (setId in selectedSetIds) {
+                val targetSet = currentSets.find { it.id == setId } ?: repository.getById(setId) ?: continue
+                val existingLines = targetSet.rawContent.lines().map { it.trim() }
+                if (!existingLines.contains(cleanLine)) {
+                    val updatedRaw = if (targetSet.rawContent.isBlank()) cleanLine else "$cleanLine\n${targetSet.rawContent.trim()}"
+                    repository.update(targetSet.copy(rawContent = updatedRaw, lastModified = System.currentTimeMillis()))
+                }
+                savedCount++
+            }
+
+            // 2. Save to selected Folders (into a dedicated 'Từ vựng đã lưu' set inside each folder if no set in that folder was already updated)
+            for (folderId in selectedFolderIds) {
+                val folder = currentFolders.find { it.id == folderId } ?: continue
+                val existingSavedSet = currentSets.find {
+                    it.folderId == folderId && (it.title.startsWith("📌") || it.title.startsWith("📝") || !BuiltinLibraryCatalog.isProtectedStudySet(it, currentFolders))
+                }
+                if (existingSavedSet != null && !selectedSetIds.contains(existingSavedSet.id)) {
+                    val existingLines = existingSavedSet.rawContent.lines().map { it.trim() }
+                    if (!existingLines.contains(cleanLine)) {
+                        val updatedRaw = if (existingSavedSet.rawContent.isBlank()) cleanLine else "$cleanLine\n${existingSavedSet.rawContent.trim()}"
+                        repository.update(existingSavedSet.copy(rawContent = updatedRaw, lastModified = System.currentTimeMillis()))
+                    }
+                    savedCount++
+                } else if (existingSavedSet == null) {
+                    val newSet = StudySet(
+                        title = "📌 Từ đã lưu - ${folder.name.take(22)}",
+                        language = targetLanguage.value,
+                        rawContent = cleanLine,
+                        isPreset = false,
+                        lastModified = System.currentTimeMillis(),
+                        folderId = folderId
+                    )
+                    repository.insert(newSet)
+                    savedCount++
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                onDone("Đã lưu vào $savedCount thư mục / bài học!")
+            }
+        }
+    }
+
+    fun saveQuickVocabOrNote(
+        isNoteType: Boolean,
+        viOrNote: String,
+        foreignOrHanzi: String,
+        pinyinOrTag: String = "",
+        customSubSetTitle: String = "",
+        onDone: (String) -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.ensureQuickSaveFoldersExist()
+            val folders = database.studySetDao().getFoldersSync()
+            val sets = database.studySetDao().getStudySetsSync()
+            val targetFolderName = if (isNoteType) {
+                BuiltinLibraryCatalog.QUICK_NOTE_FOLDER_NAME
+            } else {
+                BuiltinLibraryCatalog.QUICK_VOCAB_FOLDER_NAME
+            }
+            val defaultSetTitle = if (isNoteType) {
+                BuiltinLibraryCatalog.QUICK_NOTE_SET_TITLE
+            } else {
+                BuiltinLibraryCatalog.QUICK_VOCAB_SET_TITLE
+            }
+
+            val folder = folders.find { it.name == targetFolderName }
+            val folderId = folder?.id ?: database.studySetDao().insertFolder(Folder(name = targetFolderName))
+            val desiredTitle = customSubSetTitle.trim().ifEmpty { defaultSetTitle }
+
+            val formattedLine = if (isNoteType) {
+                val tagPrefix = if (pinyinOrTag.isNotBlank()) "[${pinyinOrTag.trim()}] " else "[Ghi chú] "
+                val rhs = foreignOrHanzi.trim().ifEmpty { "笔记 (Bǐjì)" }
+                "$tagPrefix${viOrNote.trim()} = $rhs"
+            } else {
+                val p = pinyinOrTag.trim().trim('(', ')', '[', ']')
+                val rhs = if (p.isNotEmpty() && !foreignOrHanzi.contains("(")) {
+                    "${foreignOrHanzi.trim()} ($p)"
+                } else {
+                    foreignOrHanzi.trim()
+                }
+                "${viOrNote.trim()} = $rhs"
+            }
+
+            val targetSet = sets.find { it.folderId == folderId && it.title.equals(desiredTitle, ignoreCase = true) }
+            if (targetSet != null) {
+                val newRaw = if (targetSet.rawContent.isBlank()) formattedLine else "$formattedLine\n${targetSet.rawContent.trim()}"
+                repository.update(targetSet.copy(rawContent = newRaw, lastModified = System.currentTimeMillis()))
+            } else {
+                repository.insert(
+                    StudySet(
+                        title = desiredTitle,
+                        language = "zh",
+                        rawContent = formattedLine,
+                        isPreset = false,
+                        lastModified = System.currentTimeMillis(),
+                        folderId = folderId
+                    )
+                )
+            }
+
+            withContext(Dispatchers.Main) {
+                onDone(
+                    if (isNoteType) "Đã lưu vào '$desiredTitle' (${BuiltinLibraryCatalog.QUICK_NOTE_FOLDER_NAME})!"
+                    else "Đã lưu từ vựng vào '$desiredTitle' (${BuiltinLibraryCatalog.QUICK_VOCAB_FOLDER_NAME})!"
+                )
+            }
+        }
+    }
+
+    fun getWordPersonalTag(hanziKey: String): String {
+        val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        return prefs.getString("tag_${hanziKey.trim()}", "Đã lưu") ?: "Đã lưu"
+    }
+
+    fun getWordPersonalNote(hanziKey: String): String {
+        val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        return prefs.getString("note_${hanziKey.trim()}", "") ?: ""
+    }
+
+    fun saveWordPersonalNoteAndTag(hanziKey: String, tag: String, note: String) {
+        val prefs = getApplication<Application>().getSharedPreferences("VocabNotesPrefs", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString("tag_${hanziKey.trim()}", tag)
+            .putString("note_${hanziKey.trim()}", note)
+            .apply()
+    }
+
+    fun updateStudySetContent(studySet: StudySet, newTitle: String, newRawContent: String, onDone: ((String) -> Unit)? = null) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val updated = studySet.copy(
+                title = newTitle.trim().ifEmpty { studySet.title },
+                rawContent = newRawContent.trim(),
+                lastModified = System.currentTimeMillis()
+            )
+            repository.update(updated)
+            if (deckTitle.value == studySet.title || rawTextContent.value == studySet.rawContent) {
+                withContext(Dispatchers.Main) {
+                    rawTextContent.value = updated.rawContent
+                    deckTitle.value = updated.title
+                    saveStudyState()
+                }
+            }
+            withContext(Dispatchers.Main) {
+                onDone?.invoke("Đã cập nhật bộ đề '${updated.title}'!")
+            }
+        }
+    }
+
+    fun reloadBuiltinLibrary(context: Context, onDone: (Int) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            isImportingLibrary.value = true
+            try {
+                val added = repository.ensureBuiltinLibraryLoaded(context, forceReload = true)
+                withContext(Dispatchers.Main) {
+                    onDone(added)
+                }
+            } finally {
+                isImportingLibrary.value = false
+            }
+        }
+    }
+
+    // Quizlet Flashcard Sorting Actions
+    fun setQuizletSortingEnabled(enabled: Boolean) {
+        quizletSortingEnabled.value = enabled
+        getApplication<Application>().getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
+            .edit().putBoolean("quizlet_sorting_enabled", enabled).apply()
+    }
+
+    fun setQuizletTtsEnabled(enabled: Boolean) {
+        quizletTtsEnabled.value = enabled
+        getApplication<Application>().getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
+            .edit().putBoolean("quizlet_tts_enabled", enabled).apply()
+    }
+
+    fun setQuizletFrontLang(lang: String) {
+        quizletFrontLang.value = lang
+        practiceMode.value = if (lang == "vi") "vi-foreign" else "foreign-vi"
+        _currentDirection.value = if (lang == "vi") "vi" else targetLanguage.value
+        getApplication<Application>().getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("quizlet_front_lang", lang)
+            .putString("practiceMode", practiceMode.value)
+            .apply()
+    }
+
+    fun markQuizletCard(memorized: Boolean) {
+        val total = _practicePairs.value.size
+        if (total == 0) return
+        val idx = _currentIndex.value
+        if (memorized) {
+            _memorizedIndices.value = _memorizedIndices.value + idx
+            _stillLearningIndices.value = _stillLearningIndices.value - idx
+        } else {
+            _stillLearningIndices.value = _stillLearningIndices.value + idx
+            _memorizedIndices.value = _memorizedIndices.value - idx
+        }
+
+        val classifiedCount = (_memorizedIndices.value + _stillLearningIndices.value).size
+        if (idx + 1 >= total || classifiedCount >= total) {
+            _isQuizletCompleted.value = true
+            stopAutoPlay()
+        } else {
+            _currentIndex.value = idx + 1
+            displayItem()
+        }
+    }
+
+    fun continueQuizletStillLearning() {
+        val unmemorized = _stillLearningIndices.value.sorted().mapNotNull { _practicePairs.value.getOrNull(it) }
+        if (unmemorized.isEmpty()) {
+            resetQuizletProgress()
+            return
+        }
+        _currentIndex.value = 0
+        _practicePairs.value = if (isShuffle.value) unmemorized.shuffled() else unmemorized
+        _memorizedIndices.value = emptySet()
+        _stillLearningIndices.value = emptySet()
+        _isQuizletCompleted.value = false
+        displayItem()
+    }
+
+    fun resetQuizletProgress() {
+        val rawInput = rawTextContent.value.trim()
+        val fullPairs = parseRawContent(rawInput, targetLanguage.value)
+        _currentIndex.value = 0
+        if (fullPairs.isNotEmpty()) {
+            var finalPairs = if (isShuffle.value) fullPairs.shuffled() else fullPairs
+            if (practiceOnlyStarred.value) {
+                val starredList = allStarredPairs.value
+                finalPairs = finalPairs.filter { pair ->
+                    starredList.any { s ->
+                        s.vi.trim().lowercase() == pair.vi.trim().lowercase() &&
+                            s.foreign.trim().lowercase() == pair.foreign.trim().lowercase()
+                    }
+                }
+            }
+            val limit = studyWordCountLimit.value
+            if (limit > 0 && finalPairs.size > limit) {
+                finalPairs = finalPairs.take(limit)
+            }
+            if (finalPairs.isNotEmpty()) {
+                _practicePairs.value = finalPairs
+            }
+        }
+        _memorizedIndices.value = emptySet()
+        _stillLearningIndices.value = emptySet()
+        _isQuizletCompleted.value = false
+        displayItem()
     }
 
     override fun onCleared() {
@@ -1010,14 +1360,26 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
             putString("currentDirection", _currentDirection.value)
             apply()
         }
+        LockscreenService.notifyWordChanged(getApplication())
     }
 
     fun loadStudyState() {
         Log.d("StudyState", "Loading saved state...")
         val sharedPrefs = getApplication<Application>().getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
         
-        // Restore lockscreen setting
+        // Restore lockscreen & passive notification settings
         isLockscreenEnabled.value = sharedPrefs.getBoolean("lockscreen_enabled", false)
+        isPassiveNotifEnabled.value = sharedPrefs.getBoolean("passive_notif_enabled", false)
+        passiveAutoIntervalSec.value = sharedPrefs.getInt("passive_auto_interval_sec", 0)
+        passiveAutoSpeak.value = sharedPrefs.getBoolean("passive_auto_speak", false)
+        lockscreenPopupEnabled.value = sharedPrefs.getBoolean("lockscreen_popup_enabled", true)
+
+        // Restore Quizlet flashcard settings & word count limit
+        quizletSortingEnabled.value = sharedPrefs.getBoolean("quizlet_sorting_enabled", false)
+        quizletTtsEnabled.value = sharedPrefs.getBoolean("quizlet_tts_enabled", true)
+        quizletFrontLang.value = sharedPrefs.getString("quizlet_front_lang", "zh") ?: "zh"
+        studyWordCountLimit.value = sharedPrefs.getInt("study_word_count_limit", 0).coerceAtLeast(0)
+
         autoRepeatCount.value = sharedPrefs.getInt("autoRepeatCount", 2).coerceIn(MIN_AUTO_REPEAT, MAX_AUTO_REPEAT)
         autoSpeed.value = sharedPrefs.getFloat("autoSpeed", 1f).coerceIn(MIN_AUTO_SPEED, MAX_AUTO_SPEED)
         writingFreeMode.value = sharedPrefs.getBoolean("writing_free", false)
@@ -1053,15 +1415,62 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                     _currentDirection.value = sharedPrefs.getString("currentDirection", targetLanguage.value) ?: targetLanguage.value
                     
                     // Delay speak slightly on restore
-                    viewModelScope.launch {
-                        delay(500)
-                        speakPrompt()
+                    if (quizletTtsEnabled.value) {
+                        viewModelScope.launch {
+                            delay(500)
+                            speakPrompt()
+                        }
                     }
                 } else {
                     _currentScreen.value = AppScreen.Setup
                 }
             }
         }
+    }
+
+    fun togglePassiveNotification(context: Context, enabled: Boolean) {
+        isPassiveNotifEnabled.value = enabled
+        val prefs = context.getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("passive_notif_enabled", enabled).apply()
+        syncPassiveServiceState(context)
+    }
+
+    fun updatePassiveSettings(
+        context: Context,
+        intervalSec: Int = passiveAutoIntervalSec.value,
+        autoSpeak: Boolean = passiveAutoSpeak.value,
+        popupOnLock: Boolean = lockscreenPopupEnabled.value
+    ) {
+        passiveAutoIntervalSec.value = intervalSec
+        passiveAutoSpeak.value = autoSpeak
+        lockscreenPopupEnabled.value = popupOnLock
+        context.getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE).edit()
+            .putInt("passive_auto_interval_sec", intervalSec)
+            .putBoolean("passive_auto_speak", autoSpeak)
+            .putBoolean("lockscreen_popup_enabled", popupOnLock)
+            .apply()
+        LockscreenService.notifyWordChanged(context)
+    }
+
+    private fun syncPassiveServiceState(context: Context) {
+        val shouldRun = isLockscreenEnabled.value || isPassiveNotifEnabled.value
+        val serviceIntent = Intent(context, LockscreenService::class.java).apply {
+            action = LockscreenService.ACTION_REFRESH
+        }
+        if (shouldRun) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            context.stopService(Intent(context, LockscreenService::class.java))
+        }
+        com.example.VocabAppWidgetProvider.updateAllWidgets(context)
     }
 
     fun toggleLockscreen(context: Context) {
@@ -1083,20 +1492,6 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         isLockscreenEnabled.value = newVal
         val prefs = context.getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
         prefs.edit().putBoolean("lockscreen_enabled", newVal).apply()
-
-        val serviceIntent = Intent(context, LockscreenService::class.java)
-        if (newVal) {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent)
-                } else {
-                    context.startService(serviceIntent)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        } else {
-            context.stopService(serviceIntent)
-        }
+        syncPassiveServiceState(context)
     }
 }

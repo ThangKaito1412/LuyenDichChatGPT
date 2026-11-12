@@ -31,6 +31,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -74,9 +75,7 @@ import com.example.viewmodel.AppScreen
 import com.example.viewmodel.FeedbackState
 import com.example.viewmodel.TranslationViewModel
 import com.example.data.isCjk
-import com.example.ui.AutoRepeatControl
-import com.example.ui.WritingScreen
-import com.example.ui.bounceClick
+import com.example.ui.*
 import com.example.ui.theme.feedback
 import androidx.activity.compose.BackHandler
 
@@ -453,9 +452,22 @@ fun SetupScreenView(
     val context = LocalContext.current
     val studySets by viewModel.allStudySets.collectAsState()
     val folders by viewModel.allFolders.collectAsState()
+    val starredPairs by viewModel.allStarredPairs.collectAsState()
     val targetLangState = viewModel.targetLanguage.value
 
     var selectedFolderFilterId by remember { mutableStateOf<Long?>(null) }
+    var hasAutoSelectedFirstFolder by remember { mutableStateOf(false) }
+    LaunchedEffect(folders) {
+        if (!hasAutoSelectedFirstFolder && folders.isNotEmpty() && selectedFolderFilterId == null) {
+            selectedFolderFilterId = folders.first().id
+            hasAutoSelectedFirstFolder = true
+        }
+    }
+
+    var folderSearchQuery by remember { mutableStateOf("") }
+    var globalSearchQuery by remember { mutableStateOf("") }
+    var visibleDecksLimit by remember(selectedFolderFilterId, folderSearchQuery) { mutableStateOf(20) }
+
     var showCreateFolderDialog by remember { mutableStateOf(false) }
     var newFolderNameInput by remember { mutableStateOf("") }
     var folderForNewDeckId by remember { mutableStateOf<Long?>(null) }
@@ -465,6 +477,23 @@ fun SetupScreenView(
     var renameFolderInput by remember { mutableStateOf("") }
     var showConfigDialog by remember { mutableStateOf(false) }
 
+    // New Upgraded Dialog States
+    var showQuickLookupDialog by remember { mutableStateOf(false) }
+    var showPassiveStudyDialog by remember { mutableStateOf(false) }
+    var studySetToEditVocab by remember { mutableStateOf<StudySet?>(null) }
+    var showEditCurrentRawVocab by remember { mutableStateOf(false) }
+    var homeWebViewUrl by remember { mutableStateOf<String?>(null) }
+    var showLiveVoiceTranslatorDialog by remember { mutableStateOf(false) }
+    var showQuickDualSaveDialog by remember { mutableStateOf(false) }
+    var showImageOcrDialog by remember { mutableStateOf(false) }
+    var showStudyCountDialogFromHome by remember { mutableStateOf(false) }
+    var multiFolderSaveTarget by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var visualDetailTarget by remember { mutableStateOf<Pair<VisualVocabEntry, List<VisualVocabEntry>>?>(null) }
+    var visualBookDictionaryTarget by remember { mutableStateOf<Pair<String, List<StudySet>>?>(null) }
+    var folderPendingDeleteConfirm by remember { mutableStateOf<com.example.data.Folder?>(null) }
+
+    val userDecks = remember(studySets) { studySets.filter { !it.isPreset } }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -472,624 +501,585 @@ fun SetupScreenView(
             .navigationBarsPadding()
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-        // App Header
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 12.dp)
-                ) {
-                    Text(
-                        text = "Luyện Dịch",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "Tự học dịch song ngữ, tăng phản xạ nói",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                }
-
-                // Lockscreen, Settings & Theme Toggles
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val isLockEnabled = viewModel.isLockscreenEnabled.value
-                    IconButton(
-                        onClick = { viewModel.toggleLockscreen(context) },
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(
-                                if (isLockEnabled) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            )
-                    ) {
-                        Icon(
-                            imageVector = if (isLockEnabled) Icons.Default.Lock else Icons.Default.LockOpen,
-                            contentDescription = "Màn hình khóa",
-                            tint = if (isLockEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { showConfigDialog = true },
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Cấu hình luyện tập",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = onToggleTheme,
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Icon(
-                            imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Đổi giao diện sáng/tối",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        // Writing practice entry card
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .bounceClick { viewModel.openWriting() }
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
-                        )
-                    )
-                    .padding(horizontal = 20.dp, vertical = 18.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Tập viết chữ Hán",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Xem nét mẫu • Viết theo nét • Viết tự do rồi chấm điểm",
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp,
-                            color = Color.White.copy(alpha = 0.88f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.22f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Tập viết",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        // Custom list item lists (moved to top for convenience)
-        val userDecks = studySets.filter { !it.isPreset }
-        if (userDecks.isNotEmpty()) {
+            // App Header
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp, start = 8.dp, end = 8.dp),
+                        .padding(top = 10.dp, bottom = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "BỘ ĐỀ CỦA BẠN",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        TextButton(
-                            onClick = { showCreateFolderDialog = true },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Icon(Icons.Default.CreateNewFolder, contentDescription = "Thêm thư mục", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Tạo Thư mục", fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                        }
-
-                        if (folders.isNotEmpty()) {
-                            TextButton(
-                                onClick = { showFolderManageDialog = true },
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                            ) {
-                                Icon(Icons.Default.Folder, contentDescription = "Quản lý", modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Quản lý", fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Horizontal row of Folder Chips for filtering
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // "All" chip
-                    FilterChip(
-                        selected = selectedFolderFilterId == null,
-                        onClick = { selectedFolderFilterId = null },
-                        label = { Text("📁 Tất cả (${userDecks.size})", fontSize = 11.sp, fontWeight = FontWeight.Medium) }
-                    )
-
-                    // "Ungrouped" chip
-                    val ungroupedCount = userDecks.count { it.folderId == null }
-                    FilterChip(
-                        selected = selectedFolderFilterId == -1L,
-                        onClick = { selectedFolderFilterId = -1L },
-                        label = { Text("📦 Chưa phân loại ($ungroupedCount)", fontSize = 11.sp, fontWeight = FontWeight.Medium) }
-                    )
-
-                    // Individual Custom Folder chips
-                    folders.forEach { folder ->
-                        val countInFolder = userDecks.count { it.folderId == folder.id }
-                        FilterChip(
-                            selected = selectedFolderFilterId == folder.id,
-                            onClick = { selectedFolderFilterId = folder.id },
-                            label = { Text("📂 ${folder.name} ($countInFolder)", fontSize = 11.sp, fontWeight = FontWeight.Medium) }
-                        )
-                    }
-                }
-            }
-
-            val filteredDecks = when (selectedFolderFilterId) {
-                null -> userDecks
-                -1L -> userDecks.filter { it.folderId == null }
-                else -> userDecks.filter { it.folderId == selectedFolderFilterId }
-            }
-
-            if (filteredDecks.isEmpty()) {
-                item {
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
+                            .weight(1f)
+                            .padding(end = 12.dp)
                     ) {
                         Text(
-                            text = "Trống. Không có bộ đề nào trong thư mục này.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                            fontStyle = FontStyle.Italic
+                            text = "Luyện Dịch Pro",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Từ điển trực quan • Dịch nói 2 chiều • Sách & HSK",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
                     }
-                }
-            } else {
-                items(filteredDecks) { deck ->
-                    val folderOfDeck = folders.find { it.id == deck.folderId }
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.rawTextContent.value = deck.rawContent
-                                viewModel.targetLanguage.value = deck.language
-                                Toast.makeText(context, "Đã tải: ${deck.title}!", Toast.LENGTH_SHORT).show()
-                            },
-                        shape = RoundedCornerShape(20.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f)),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val isPassiveActive = viewModel.isLockscreenEnabled.value || viewModel.isPassiveNotifEnabled.value
+                        IconButton(
+                            onClick = { showPassiveStudyDialog = true },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(
+                                    if (isPassiveActive) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                        ) {
+                            Icon(
+                                imageVector = if (isPassiveActive) Icons.Default.NotificationsActive else Icons.Default.LockOpen,
+                                contentDescription = "Học thụ động & Màn hình khóa",
+                                tint = if (isPassiveActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { showConfigDialog = true },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Cấu hình luyện tập",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = onToggleTheme,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Icon(
+                                imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = "Đổi giao diện sáng/tối",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Global Vocabulary Search Bar (Hanzi, Vietnamese, Unaccented Pinyin, 2-way Sentence Translation, Voice & Camera/Photo OCR)
+            item {
+                GlobalVocabularySearchBar(
+                    searchQuery = globalSearchQuery,
+                    onSearchQueryChange = { globalSearchQuery = it },
+                    studySets = studySets,
+                    folders = folders,
+                    onSelectStudySet = { deck, startImmediately ->
+                        viewModel.rawTextContent.value = deck.rawContent
+                        viewModel.targetLanguage.value = deck.language
+                        viewModel.deckTitle.value = deck.title
+                        globalSearchQuery = ""
+                        if (startImmediately) {
+                            viewModel.startPractice()
+                        } else {
+                            Toast.makeText(context, "Đã nạp: ${deck.title}", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onEditStudySet = { deck ->
+                        studySetToEditVocab = deck
+                    },
+                    onSpeakWord = { text, lang ->
+                        viewModel.speakText(text, lang)
+                    },
+                    onWriteWord = { han ->
+                        viewModel.openWriting(han)
+                    },
+                    onOpenVisualVocabDetail = { entry, siblings ->
+                        visualDetailTarget = entry to siblings
+                    },
+                    onRequestMultiFolderSave = { vi, foreign ->
+                        multiFolderSaveTarget = vi to foreign
+                    },
+                    onOpenVoiceSearch = {
+                        showLiveVoiceTranslatorDialog = true
+                    },
+                    onOpenCameraOrPhotoOcr = {
+                        showImageOcrDialog = true
+                    }
+                )
+            }
+
+            // Modern Dashboard Stats + Quick Feature Grid
+            item {
+                ModernHomeDashboardBanner(
+                    totalFolders = folders.size,
+                    totalSets = userDecks.size,
+                    starredCount = starredPairs.size,
+                    isPassiveActive = viewModel.isLockscreenEnabled.value || viewModel.isPassiveNotifEnabled.value,
+                    isQuizletEnabled = viewModel.quizletSortingEnabled.value,
+                    onOpenQuickLookup = { showQuickLookupDialog = true },
+                    onOpenLiveVoiceTranslator = { showLiveVoiceTranslatorDialog = true },
+                    onOpenQuickDualSave = { showQuickDualSaveDialog = true },
+                    onOpenImageTranslator = { showImageOcrDialog = true },
+                    onOpenPassiveSettings = { showPassiveStudyDialog = true },
+                    onOpenVocabEditorForCurrent = {
+                        if (viewModel.rawTextContent.value.isBlank()) {
+                            val firstSet = userDecks.firstOrNull()
+                            if (firstSet != null) {
+                                studySetToEditVocab = firstSet
+                            } else {
+                                showEditCurrentRawVocab = true
+                            }
+                        } else {
+                            val matchedDeck = studySets.find { it.title == viewModel.deckTitle.value && it.rawContent == viewModel.rawTextContent.value }
+                            if (matchedDeck != null) {
+                                studySetToEditVocab = matchedDeck
+                            } else {
+                                showEditCurrentRawVocab = true
+                            }
+                        }
+                    },
+                    onToggleQuizletMode = {
+                        val nextState = !viewModel.quizletSortingEnabled.value
+                        viewModel.setQuizletSortingEnabled(nextState)
+                        Toast.makeText(
+                            context,
+                            if (nextState) "Đã BẬT chế độ Phân loại thẻ Quizlet (Đã nhớ / Chưa nhớ)!"
+                            else "Đã chuyển về chế độ Lướt tự do!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            }
+
+            // Writing practice entry card
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .bounceClick { viewModel.openWriting() }
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+                            )
+                        )
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "✍️ Tập viết chữ Hán & Chấm điểm nét",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                text = "Xem nét mẫu • Viết theo nét • Tự viết ngay • Chấm điểm từng chữ",
+                                fontSize = 11.5.sp,
+                                lineHeight = 15.sp,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.22f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Tập viết",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Hierarchical 3-Level Book & Folder Library with Book Covers + Dual View Mode (Illustrated vs List)
+            item {
+                HierarchicalBookLibraryCard(
+                    folders = folders,
+                    userDecks = userDecks,
+                    allStudySets = studySets,
+                    viewModel = viewModel,
+                    onSelectDeckForSetup = { deck ->
+                        viewModel.rawTextContent.value = deck.rawContent
+                        viewModel.targetLanguage.value = deck.language
+                        viewModel.deckTitle.value = deck.title
+                        viewModel.saveStudyState()
+                        Toast.makeText(context, "Đã nạp: ${deck.title}", Toast.LENGTH_SHORT).show()
+                    },
+                    onStartDeckWithConfig = { deck, wordLimit, isRandom ->
+                        viewModel.rawTextContent.value = deck.rawContent
+                        viewModel.targetLanguage.value = deck.language
+                        viewModel.deckTitle.value = deck.title
+                        viewModel.setStudyWordCountLimit(wordLimit)
+                        viewModel.isShuffle.value = isRandom
+                        val ok = viewModel.startPractice()
+                        if (!ok) {
+                            Toast.makeText(context, "Không có câu được gắn sao nào trong bài này!", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onEditDeckVocab = { deck ->
+                        studySetToEditVocab = deck
+                    },
+                    onAssignFolderForDeck = { deck ->
+                        showFolderAssignDialogForDeck = deck
+                    },
+                    onOpenCreateFolder = {
+                        showCreateFolderDialog = true
+                    },
+                    onOpenManageFolders = {
+                        showFolderManageDialog = true
+                    },
+                    onOpenQuickDualSave = {
+                        showQuickDualSaveDialog = true
+                    },
+                    onOpenVisualBookDictionary = { bookTitle, sets ->
+                        visualBookDictionaryTarget = bookTitle to sets
+                    },
+                    onOpenVisualWordDetail = { entry, siblings ->
+                        visualDetailTarget = entry to siblings
+                    }
+                )
+            }
+
+            // Input Text Block
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
                         Row(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(deck.title, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = "Ngôn ngữ: ${if (deck.language == "zh") "Tiếng Trung" else "Tiếng Anh"}",
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                                            .clickable { showFolderAssignDialogForDeck = deck }
-                                    ) {
-                                        Text(
-                                            text = if (folderOfDeck != null) "📂 ${folderOfDeck.name}" else "📁 Chọn thư mục...",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                // Copy deck content button
-                                IconButton(onClick = {
-                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText(deck.title, deck.rawContent))
-                                    Toast.makeText(context, "Đã sao chép: ${deck.title}!", Toast.LENGTH_SHORT).show()
-                                }) {
-                                    Icon(
-                                        Icons.Default.ContentCopy,
-                                        contentDescription = "Sao chép bộ đề",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-
-                                // Reassign folder button
-                                IconButton(onClick = { showFolderAssignDialogForDeck = deck }) {
-                                    Icon(
-                                        Icons.Default.DriveFileMove,
-                                        contentDescription = "Di chuyển thư mục",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-
-                                IconButton(onClick = { viewModel.deleteStudySet(deck) }) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Xóa",
-                                        tint = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Input Text Block
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "DANH SÁCH CÂU ĐỂ LUYỆN TẬP",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Định dạng: Câu Việt = Câu nước ngoài (ngăn cách bằng dấu = hoặc #). Mỗi cặp câu ghi trên một dòng mới.",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        lineHeight = 15.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = viewModel.rawTextContent.value,
-                        onValueChange = { viewModel.rawTextContent.value = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
-                        placeholder = {
-                            Text(
-                                text = "Ví dụ:\nchào buổi sáng = good morning\ntôi khỏe = i am fine\nThành phố này rất đẹp = This city is beautiful",
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                            )
-                        },
-                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
-                        shape = RoundedCornerShape(16.dp),
-                        maxLines = 100
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Copy, Paste & Clear buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                if (viewModel.rawTextContent.value.isNotBlank()) {
-                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("LuyenDich", viewModel.rawTextContent.value))
-                                    Toast.makeText(context, "Đã sao chép vào bộ nhớ tạm!", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(context, "Không có nội dung để sao chép", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.weight(1f).height(42.dp)
-                        ) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = "Sao chép", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Sao chép", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                        }
-
-                        Button(
-                            onClick = {
-                                val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clipData = clipboardManager.primaryClip
-                                if (clipData != null && clipData.itemCount > 0) {
-                                    val text = clipData.getItemAt(0).text.toString()
-                                    viewModel.rawTextContent.value = text
-                                    Toast.makeText(context, "Đã dán từ clipboard!", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(context, "Bộ nhớ tạm trống", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.weight(1f).height(42.dp)
-                        ) {
-                            Icon(Icons.Default.ContentPaste, contentDescription = "Dán", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Dán", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                        }
-
-                        Button(
-                            onClick = { viewModel.rawTextContent.value = "" },
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f), contentColor = MaterialTheme.colorScheme.onErrorContainer),
-                            modifier = Modifier.weight(1f).height(42.dp)
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Xóa", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Xóa", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                        }
-                    }
-                }
-            }
-        }
-
-        // Preset Quick Loads
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "TẢI NHANH CÂU MẪU ĐỀ NGHỊ",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
-                        val matchingSets = studySets.filter { 
-                            it.isPreset && it.language == targetLangState
-                        }
-
-                        if (matchingSets.isEmpty()) {
-                            Text("Không có preset. Hãy kết nối cơ sở dữ liệu.", fontSize = 12.sp)
-                        }
-
-                        matchingSets.forEach { preset ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                                    .clickable {
-                                        viewModel.rawTextContent.value = preset.rawContent
-                                        Toast.makeText(context, "Đã tải: ${preset.title}", Toast.LENGTH_SHORT).show()
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
                                 Text(
-                                    text = preset.title.substringBefore(" ("),
+                                    text = "DANH SÁCH CÂU ĐANG CHỌN ĐỂ HỌC",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    maxLines = 1,
-                                    softWrap = false
+                                    letterSpacing = 1.5.sp,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
+                                if (viewModel.deckTitle.value.isNotBlank()) {
+                                    Text(
+                                        text = "Đang nạp: ${viewModel.deckTitle.value}",
+                                        fontSize = 11.5.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TextButton(
+                                    onClick = { showStudyCountDialogFromHome = true },
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Icon(Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(15.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    val countLabel = if (viewModel.studyWordCountLimit.value <= 0) "Tất cả" else "${viewModel.studyWordCountLimit.value} từ"
+                                    val orderLabel = if (viewModel.isShuffle.value) "Ngẫu nhiên" else "Thứ tự"
+                                    Text("$countLabel • $orderLabel", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                                TextButton(
+                                    onClick = { showEditCurrentRawVocab = true },
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Icon(Icons.Default.EditNote, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text("Sửa bảng", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = "Định dạng: Câu Việt = Câu nước ngoài (ngăn cách bằng dấu = hoặc #). Mỗi cặp câu ghi trên một dòng mới.",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            lineHeight = 15.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = viewModel.rawTextContent.value,
+                            onValueChange = { viewModel.rawTextContent.value = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp),
+                            placeholder = {
+                                Text(
+                                    text = "Ví dụ:\nXin chào = 你好 (Nǐ hǎo)\nCảm ơn = 谢谢 (Xièxie)",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                )
+                            },
+                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
+                            shape = RoundedCornerShape(16.dp),
+                            maxLines = 100
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Copy, Paste & Clear buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    if (viewModel.rawTextContent.value.isNotBlank()) {
+                                        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("LuyenDich", viewModel.rawTextContent.value))
+                                        Toast.makeText(context, "Đã sao chép vào bộ nhớ tạm!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Không có nội dung để sao chép", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.weight(1f).height(42.dp)
+                            ) {
+                                Icon(Icons.Default.ContentCopy, contentDescription = "Sao chép", modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Sao chép", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                            }
+
+                            Button(
+                                onClick = {
+                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clipData = clipboardManager.primaryClip
+                                    if (clipData != null && clipData.itemCount > 0) {
+                                        val text = clipData.getItemAt(0).text.toString()
+                                        viewModel.rawTextContent.value = text
+                                        Toast.makeText(context, "Đã dán từ clipboard!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Bộ nhớ tạm trống", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.weight(1f).height(42.dp)
+                            ) {
+                                Icon(Icons.Default.ContentPaste, contentDescription = "Dán", modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Dán", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                            }
+
+                            Button(
+                                onClick = { viewModel.rawTextContent.value = "" },
+                                shape = RoundedCornerShape(16.dp),
+                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f), contentColor = MaterialTheme.colorScheme.onErrorContainer),
+                                modifier = Modifier.weight(1f).height(42.dp)
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = "Xóa", modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Xóa", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                             }
                         }
                     }
                 }
             }
-        }
 
-
-
-        // Action Deck Persistence and Start
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = "LƯU ĐỀ ĐÃ NHẬP",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = viewModel.deckTitle.value,
-                            onValueChange = { viewModel.deckTitle.value = it },
-                            placeholder = { Text("Tên bộ câu hỏi mới...", fontSize = 13.sp) },
-                            singleLine = true,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.weight(1f),
-                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
+            // Preset Quick Loads
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "TẢI NHANH CÂU MẪU ĐỀ NGHỊ",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.5.sp,
+                            color = MaterialTheme.colorScheme.primary
                         )
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                        Button(
-                            onClick = {
-                                viewModel.saveNewStudySetCompose(context, folderForNewDeckId) { msg ->
-                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                                    viewModel.deckTitle.value = ""
-                                }
-                            },
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(Icons.Default.Save, contentDescription = "Lưu", modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Lưu", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Folder selector dropdown when saving
-                    var folderDropdownExpanded by remember { mutableStateOf(false) }
-                    val currentSelectedFolderLabel = if (folderForNewDeckId == null) {
-                        "📁 Chưa phân loại / Không chọn thư mục"
-                    } else {
-                        "📂 " + (folders.find { it.id == folderForNewDeckId }?.name ?: "Nhấp để chọn")
-                    }
-
-                    Box(modifier = Modifier.fillMaxWidth()) {
                         Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                                .clickable { folderDropdownExpanded = true }
-                                .padding(horizontal = 14.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .horizontalScroll(rememberScrollState())
                         ) {
-                            Text(
-                                text = "Lưu vào thư mục: $currentSelectedFolderLabel",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            val matchingSets = studySets.filter {
+                                it.isPreset && it.language == targetLangState
+                            }
+
+                            matchingSets.forEach { preset ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                                        .clickable {
+                                            viewModel.rawTextContent.value = preset.rawContent
+                                            viewModel.deckTitle.value = preset.title
+                                            Toast.makeText(context, "Đã tải: ${preset.title}", Toast.LENGTH_SHORT).show()
+                                        }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = preset.title.substringBefore(" ("),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Action Deck Persistence and Start
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "LƯU THÀNH BÀI HỌC MỚI TRONG THƯ MỤC",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.5.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = viewModel.deckTitle.value,
+                                onValueChange = { viewModel.deckTitle.value = it },
+                                placeholder = { Text("Tên bài học mới...", fontSize = 13.sp) },
+                                singleLine = true,
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.weight(1f),
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
                             )
-                            Icon(
-                                Icons.Default.ArrowDropDown,
-                                contentDescription = "Chọn thư mục",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+
+                            Button(
+                                onClick = {
+                                    viewModel.saveNewStudySetCompose(context, folderForNewDeckId ?: selectedFolderFilterId?.takeIf { it > 0 }) { msg ->
+                                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                    }
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Icon(Icons.Default.Save, contentDescription = "Lưu", modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Lưu", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
 
-                        DropdownMenu(
-                            expanded = folderDropdownExpanded,
-                            onDismissRequest = { folderDropdownExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("📁 Chưa phân loại", fontSize = 13.sp) },
-                                onClick = {
-                                    folderForNewDeckId = null
-                                    folderDropdownExpanded = false
-                                }
-                            )
-                            folders.forEach { folder ->
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        var folderDropdownExpanded by remember { mutableStateOf(false) }
+                        val effectiveFolderId = folderForNewDeckId ?: selectedFolderFilterId?.takeIf { it > 0 }
+                        val currentSelectedFolderLabel = if (effectiveFolderId == null) {
+                            "📁 Chưa phân loại / Không chọn thư mục"
+                        } else {
+                            "📂 " + (folders.find { it.id == effectiveFolderId }?.name ?: "Nhấp để chọn")
+                        }
+
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                                    .clickable { folderDropdownExpanded = true }
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Lưu vào thư mục: $currentSelectedFolderLabel",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Icon(
+                                    Icons.Default.ArrowDropDown,
+                                    contentDescription = "Chọn thư mục",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = folderDropdownExpanded,
+                                onDismissRequest = { folderDropdownExpanded = false }
+                            ) {
                                 DropdownMenuItem(
-                                    text = { Text("📂 ${folder.name}", fontSize = 13.sp) },
+                                    text = { Text("📁 Chưa phân loại", fontSize = 13.sp) },
                                     onClick = {
-                                        folderForNewDeckId = folder.id
+                                        folderForNewDeckId = -1L
                                         folderDropdownExpanded = false
                                     }
                                 )
+                                folders.forEach { folder ->
+                                    DropdownMenuItem(
+                                        text = { Text("📂 ${folder.name}", fontSize = 13.sp) },
+                                        onClick = {
+                                            folderForNewDeckId = folder.id
+                                            folderDropdownExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
-
                 }
             }
         }
-
-
-    }
 
         Box(
             modifier = Modifier
@@ -1110,7 +1100,15 @@ fun SetupScreenView(
             Button(
                 onClick = {
                     if (viewModel.rawTextContent.value.isEmpty()) {
-                        Toast.makeText(context, "Mời nhập danh sách hoặc chọn câu mẫu!", Toast.LENGTH_SHORT).show()
+                        val firstDeck = userDecks.firstOrNull()
+                        if (firstDeck != null) {
+                            viewModel.rawTextContent.value = firstDeck.rawContent
+                            viewModel.targetLanguage.value = firstDeck.language
+                            viewModel.deckTitle.value = firstDeck.title
+                            viewModel.startPractice()
+                        } else {
+                            Toast.makeText(context, "Mời nhập danh sách hoặc chọn bài học!", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
                         val ok = viewModel.startPractice()
                         if (!ok) {
@@ -1126,12 +1124,244 @@ fun SetupScreenView(
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = "Bắt đầu")
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Bắt đầu Luyện tập", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = if (viewModel.quizletSortingEnabled.value) "Bắt đầu Học (Phân loại Quizlet)"
+                    else "Bắt đầu Luyện tập",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
 
-    // --- DIALOG POPUPS ---
+    // --- NEW DIALOG POPUPS ---
+    if (showQuickLookupDialog) {
+        QuickTranslationLookupDialog(
+            studySets = studySets,
+            onDismiss = { showQuickLookupDialog = false },
+            onSpeak = { text, lang -> viewModel.speakText(text, lang) },
+            onAddWordToCurrent = { vi, hanzi, pinyin ->
+                val line = EditableVocabItem(vi, hanzi, pinyin).toRawLine()
+                val current = viewModel.rawTextContent.value.trim()
+                viewModel.rawTextContent.value = if (current.isEmpty()) line else "$line\n$current"
+                viewModel.saveStudyState()
+            },
+            onOpenWebUrl = { url ->
+                showQuickLookupDialog = false
+                homeWebViewUrl = url
+            },
+            onOpenVisualVocabDetail = { entry, siblings ->
+                showQuickLookupDialog = false
+                visualDetailTarget = entry to siblings
+            },
+            onRequestMultiFolderSave = { vi, foreign ->
+                multiFolderSaveTarget = vi to foreign
+            },
+            onOpenVoiceTranslator = {
+                showQuickLookupDialog = false
+                showLiveVoiceTranslatorDialog = true
+            },
+            onOpenCameraOcr = {
+                showQuickLookupDialog = false
+                showImageOcrDialog = true
+            }
+        )
+    }
+
+    if (showLiveVoiceTranslatorDialog) {
+        LiveTwoWayVoiceTranslatorDialog(
+            viewModel = viewModel,
+            studySets = studySets,
+            onDismiss = { showLiveVoiceTranslatorDialog = false },
+            onRequestMultiFolderSave = { vi, foreign ->
+                multiFolderSaveTarget = vi to foreign
+            }
+        )
+    }
+
+    if (showQuickDualSaveDialog) {
+        QuickDualSaveNoteVocabDialog(
+            viewModel = viewModel,
+            onDismiss = { showQuickDualSaveDialog = false }
+        )
+    }
+
+    if (showImageOcrDialog) {
+        ImageOcrTranslateDialog(
+            initialBitmap = null,
+            studySets = studySets,
+            onDismiss = { showImageOcrDialog = false },
+            onApplyQueryToSearch = { text ->
+                showImageOcrDialog = false
+                globalSearchQuery = text
+            },
+            onSpeak = { text, lang -> viewModel.speakText(text, lang) },
+            onSaveWordToFolders = { vi, foreign ->
+                multiFolderSaveTarget = vi to foreign
+            }
+        )
+    }
+
+    multiFolderSaveTarget?.let { (viText, foreignText) ->
+        MultiFolderSaveDialog(
+            vi = viText,
+            foreign = foreignText,
+            folders = folders,
+            studySets = studySets,
+            viewModel = viewModel,
+            onDismiss = { multiFolderSaveTarget = null }
+        )
+    }
+
+    visualDetailTarget?.let { (entry, pool) ->
+        VisualVocabDetailDialog(
+            initialEntry = entry,
+            relatedEntries = pool,
+            allStudySets = studySets,
+            folders = folders,
+            viewModel = viewModel,
+            onDismiss = { visualDetailTarget = null },
+            onOpenWebUrl = { url ->
+                homeWebViewUrl = url
+            },
+            onRequestMultiFolderSave = { vi, foreign ->
+                multiFolderSaveTarget = vi to foreign
+            }
+        )
+    }
+
+    visualBookDictionaryTarget?.let { (bookTitle, sets) ->
+        VisualBookDictionaryDialog(
+            bookOrFolderTitle = bookTitle,
+            setsInBook = sets,
+            allStudySets = studySets,
+            folders = folders,
+            viewModel = viewModel,
+            onDismiss = { visualBookDictionaryTarget = null },
+            onStartStudySet = { setToStart, limit, random ->
+                visualBookDictionaryTarget = null
+                viewModel.rawTextContent.value = setToStart.rawContent
+                viewModel.targetLanguage.value = setToStart.language
+                viewModel.deckTitle.value = setToStart.title
+                viewModel.setStudyWordCountLimit(limit)
+                viewModel.isShuffle.value = random
+                viewModel.startPractice()
+            },
+            onOpenWebUrl = { url ->
+                homeWebViewUrl = url
+            },
+            onRequestMultiFolderSave = { vi, foreign ->
+                multiFolderSaveTarget = vi to foreign
+            }
+        )
+    }
+
+    if (showStudyCountDialogFromHome) {
+        val tempStudySet = remember(viewModel.deckTitle.value, viewModel.rawTextContent.value) {
+            StudySet(
+                id = -999L,
+                title = viewModel.deckTitle.value.ifBlank { "Danh sách đang chọn" },
+                rawContent = viewModel.rawTextContent.value,
+                language = viewModel.targetLanguage.value,
+                isPreset = false
+            )
+        }
+        LessonStudyCountSelectorDialog(
+            studySet = tempStudySet,
+            currentLimit = viewModel.studyWordCountLimit.value,
+            isRandom = viewModel.isShuffle.value,
+            onDismiss = { showStudyCountDialogFromHome = false },
+            onConfirmStart = { limit, random ->
+                viewModel.setStudyWordCountLimit(limit)
+                viewModel.isShuffle.value = random
+                showStudyCountDialogFromHome = false
+                if (viewModel.rawTextContent.value.isNotBlank()) {
+                    viewModel.startPractice()
+                } else {
+                    Toast.makeText(context, "Đã lưu cấu hình: ${if (limit <= 0) "Tất cả" else "$limit từ"} (${if (random) "Ngẫu nhiên" else "Theo thứ tự"})", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+    }
+
+    if (showPassiveStudyDialog) {
+        PassiveStudyControlDialog(
+            viewModel = viewModel,
+            onDismiss = { showPassiveStudyDialog = false }
+        )
+    }
+
+    studySetToEditVocab?.let { deck ->
+        VocabularyCrudManagerDialog(
+            title = deck.title,
+            initialRawContent = deck.rawContent,
+            onDismiss = { studySetToEditVocab = null },
+            onSave = { newTitle, newRaw ->
+                viewModel.updateStudySetContent(deck, newTitle, newRaw) { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                }
+                studySetToEditVocab = null
+            },
+            onSpeak = { text -> viewModel.speakText(text, deck.language) }
+        )
+    }
+
+    if (showEditCurrentRawVocab) {
+        VocabularyCrudManagerDialog(
+            title = viewModel.deckTitle.value.ifBlank { "Danh sách đang chọn" },
+            initialRawContent = viewModel.rawTextContent.value,
+            onDismiss = { showEditCurrentRawVocab = false },
+            onSave = { newTitle, newRaw ->
+                viewModel.deckTitle.value = newTitle
+                viewModel.rawTextContent.value = newRaw
+                viewModel.saveStudyState()
+                showEditCurrentRawVocab = false
+                Toast.makeText(context, "Đã cập nhật danh sách từ vựng!", Toast.LENGTH_SHORT).show()
+            },
+            onSpeak = { text -> viewModel.speakText(text, viewModel.targetLanguage.value) }
+        )
+    }
+
+    if (homeWebViewUrl != null) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { homeWebViewUrl = null },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f),
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f))
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Tra cứu trực tuyến", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        IconButton(onClick = { homeWebViewUrl = null }) {
+                            Icon(Icons.Default.Close, contentDescription = "Đóng")
+                        }
+                    }
+                    AndroidView(
+                        factory = { ctx ->
+                            WebView(ctx).apply {
+                                webViewClient = WebViewClient()
+                                webChromeClient = WebChromeClient()
+                                settings.javaScriptEnabled = true
+                                settings.domStorageEnabled = true
+                                homeWebViewUrl?.let { loadUrl(it) }
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        }
+    }
 
     if (showCreateFolderDialog) {
         AlertDialog(
@@ -1177,7 +1407,7 @@ fun SetupScreenView(
             title = { Text("Di chuyển vào Thư mục", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
             text = {
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
@@ -1224,78 +1454,154 @@ fun SetupScreenView(
         )
     }
 
+    folderPendingDeleteConfirm?.let { folderToDel ->
+        AlertDialog(
+            onDismissRequest = { folderPendingDeleteConfirm = null },
+            icon = {
+                Icon(Icons.Default.WarningAmber, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+            },
+            title = {
+                Text("Xác nhận xóa thư mục", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            },
+            text = {
+                Text(
+                    "Bạn có chắc chắn muốn xóa thư mục '${folderToDel.name}' không?\nHệ thống sẽ gửi thông báo xác nhận lên thanh trạng thái.",
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteFolder(folderToDel) { _, msg ->
+                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        }
+                        if (selectedFolderFilterId == folderToDel.id) {
+                            selectedFolderFilterId = null
+                        }
+                        folderPendingDeleteConfirm = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Xóa & Báo hệ thống", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { folderPendingDeleteConfirm = null }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
+
     if (showFolderManageDialog) {
         AlertDialog(
             onDismissRequest = { showFolderManageDialog = false },
-            title = { Text("Quản lý Thư mục", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
+            title = { Text("Quản lý Thư mục & Kho Sách", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
             text = {
-                if (folders.isEmpty()) {
-                    Text("Chưa có thư mục nào để quản lý.", fontSize = 13.sp, color = Color.Gray)
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.reloadBuiltinLibrary(context) { added ->
+                                Toast.makeText(
+                                    context,
+                                    if (added > 0) "Đã khôi phục/bổ sung $added bài học vào Kho Sách!"
+                                    else "Kho Sách đã đầy đủ tất cả các bài học!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        items(folders) { folder ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                        Icon(Icons.Default.LibraryBooks, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Khôi phục / Đồng bộ Kho Sách Chuẩn", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    if (folders.isEmpty()) {
+                        Text("Chưa có thư mục nào để quản lý.", fontSize = 13.sp, color = Color.Gray)
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(folders) { folder ->
+                                val isProtected = com.example.data.BuiltinLibraryCatalog.isProtectedFolder(folder.name)
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                 ) {
-                                    if (folderToRenameId == folder.id) {
-                                        OutlinedTextField(
-                                            value = renameFolderInput,
-                                            onValueChange = { renameFolderInput = it },
-                                            singleLine = true,
-                                            modifier = Modifier.weight(1f),
-                                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
-                                        )
-                                        IconButton(
-                                            onClick = {
-                                                val newName = renameFolderInput.trim()
-                                                if (newName.isNotEmpty()) {
-                                                    viewModel.renameFolder(folder, newName)
-                                                    folderToRenameId = null
-                                                    Toast.makeText(context, "Đã đổi tên thư mục", Toast.LENGTH_SHORT).show()
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        if (folderToRenameId == folder.id) {
+                                            OutlinedTextField(
+                                                value = renameFolderInput,
+                                                onValueChange = { renameFolderInput = it },
+                                                singleLine = true,
+                                                modifier = Modifier.weight(1f),
+                                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+                                            )
+                                            IconButton(
+                                                onClick = {
+                                                    val newName = renameFolderInput.trim()
+                                                    if (newName.isNotEmpty()) {
+                                                        viewModel.renameFolder(folder, newName)
+                                                        folderToRenameId = null
+                                                        Toast.makeText(context, "Đã đổi tên thư mục", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(Icons.Default.Check, contentDescription = "Đồng ý", tint = MaterialTheme.feedback.success, modifier = Modifier.size(18.dp))
+                                            }
+                                            IconButton(onClick = { folderToRenameId = null }) {
+                                                Icon(Icons.Default.Close, contentDescription = "Hủy", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                                            }
+                                        } else {
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = folder.name,
+                                                    fontSize = 12.5.sp,
+                                                    fontWeight = FontWeight.SemiBold
+                                                )
+                                                if (isProtected) {
+                                                    Text(
+                                                        text = "🔒 Bộ sách mặc định (Được bảo vệ)",
+                                                        fontSize = 10.sp,
+                                                        color = MaterialTheme.colorScheme.secondary
+                                                    )
                                                 }
                                             }
-                                        ) {
-                                            Icon(Icons.Default.Check, contentDescription = "Đồng ý", tint = MaterialTheme.feedback.success, modifier = Modifier.size(18.dp))
-                                        }
-                                        IconButton(onClick = { folderToRenameId = null }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Hủy", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
-                                        }
-                                    } else {
-                                        Text(
-                                            text = folder.name,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        IconButton(
-                                            onClick = {
-                                                folderToRenameId = folder.id
-                                                renameFolderInput = folder.name
+                                            if (!isProtected) {
+                                                IconButton(
+                                                    onClick = {
+                                                        folderToRenameId = folder.id
+                                                        renameFolderInput = folder.name
+                                                    }
+                                                ) {
+                                                    Icon(Icons.Default.Edit, contentDescription = "Sửa", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                                }
+                                                IconButton(
+                                                    onClick = {
+                                                        folderPendingDeleteConfirm = folder
+                                                    }
+                                                ) {
+                                                    Icon(Icons.Default.Delete, contentDescription = "Xóa", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                                                }
+                                            } else {
+                                                IconButton(
+                                                    onClick = {
+                                                        viewModel.deleteFolder(folder) { _, msg ->
+                                                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                                        }
+                                                    }
+                                                ) {
+                                                    Icon(Icons.Default.Lock, contentDescription = "Không thể xóa", tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(16.dp))
+                                                }
                                             }
-                                        ) {
-                                            Icon(Icons.Default.Edit, contentDescription = "Sửa", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                         }
-                                        IconButton(
-                                            onClick = {
-                                                viewModel.deleteFolder(folder)
-                                                if (selectedFolderFilterId == folder.id) {
-                                                    selectedFolderFilterId = null
-                                                 }
-                                                Toast.makeText(context, "Đã xóa thư mục '${folder.name}'", Toast.LENGTH_SHORT).show()
-                                            }
-                                        ) {
-
-                                             Icon(Icons.Default.Delete, contentDescription = "Xóa", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
-                                         }
                                     }
                                 }
                             }
@@ -1343,8 +1649,42 @@ fun SetupScreenView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    // Quizlet Sorting Toggle right inside Settings
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                Text(
+                                    text = "🗂️ Phân loại từ vựng như Quizlet",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.5.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Phân loại thẻ Đã nhớ (Xanh) & Chưa nhớ (Cam), ôn lại từ chưa nhớ khi hết bài",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                            Switch(
+                                checked = viewModel.quizletSortingEnabled.value,
+                                onCheckedChange = { viewModel.setQuizletSortingEnabled(it) }
+                            )
+                        }
+                    }
+
                     // 1. Language Options
                     Text("1. Ngôn ngữ mục tiêu:", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     Row(
@@ -1353,9 +1693,7 @@ fun SetupScreenView(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { 
-                                viewModel.targetLanguage.value = "en"
-                            }
+                            modifier = Modifier.clickable { viewModel.targetLanguage.value = "en" }
                         ) {
                             RadioButton(
                                 selected = targetLangState == "en",
@@ -1367,9 +1705,7 @@ fun SetupScreenView(
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { 
-                                viewModel.targetLanguage.value = "zh"
-                            }
+                            modifier = Modifier.clickable { viewModel.targetLanguage.value = "zh" }
                         ) {
                             RadioButton(
                                 selected = targetLangState == "zh",
@@ -1490,7 +1826,7 @@ fun PracticeScreenView(
 ) {
     val context = LocalContext.current
     val practicePairs by viewModel.practicePairs.collectAsState()
-    val currentIndex by viewModel.currentIndex.collectAsState()
+    val rawCurrentIndex by viewModel.currentIndex.collectAsState()
     val currentDirection by viewModel.currentDirection.collectAsState()
     val feedback by viewModel.feedback.collectAsState()
     val isLooping by viewModel.isAudioLooping.collectAsState()
@@ -1500,11 +1836,17 @@ fun PracticeScreenView(
     val dictatingText = viewModel.currentSpeechTranscript.value
     val allStarredPairs by viewModel.allStarredPairs.collectAsState()
     val practicedIndices by viewModel.practicedIndices.collectAsState()
+    val memorizedIndices by viewModel.memorizedIndices.collectAsState()
+    val stillLearningIndices by viewModel.stillLearningIndices.collectAsState()
+    val isQuizletCompleted by viewModel.isQuizletCompleted.collectAsState()
+    val isQuizletSorting = viewModel.quizletSortingEnabled.value
 
     val total = practicePairs.size
     if (total == 0) return
+    val currentIndex = rawCurrentIndex.coerceIn(0, total - 1)
 
     var showQuestionSelector by remember { mutableStateOf(false) }
+    var showQuizletOptionsModal by remember { mutableStateOf(false) }
     var isSearchMenuExpanded by remember { mutableStateOf(false) }
     var showWebViewUrl by remember { mutableStateOf<String?>(null) }
     var showAutoRepeatDialog by remember { mutableStateOf(false) }
@@ -1551,12 +1893,13 @@ fun PracticeScreenView(
         }
     }
 
-    val currentPair = practicePairs[currentIndex]
+    val currentPair = practicePairs.getOrNull(currentIndex) ?: practicePairs.first()
     val promptText = if (currentDirection == "vi") currentPair.vi else currentPair.foreign
     val directionBadgeText = if (currentDirection == "vi") "VI ➔ ${viewModel.targetLanguage.value.uppercase()}" else "${viewModel.targetLanguage.value.uppercase()} ➔ VI"
 
     val dragThreshold = 120f
     var dragAmountY by remember { mutableStateOf(0f) }
+    var dragAmountX by remember { mutableStateOf(0f) }
     var lastTapTime by remember { mutableStateOf(0L) }
     var tapCount by remember { mutableStateOf(0) }
     var showTikTokStarPop by remember { mutableStateOf(false) }
@@ -1565,6 +1908,23 @@ fun PracticeScreenView(
     val isStarred = allStarredPairs.any { s ->
         s.vi.trim().lowercase() == currentPair.vi.trim().lowercase() &&
         s.foreign.trim().lowercase() == currentPair.foreign.trim().lowercase()
+    }
+
+    if (showQuizletOptionsModal) {
+        QuizletOptionsModal(
+            viewModel = viewModel,
+            onDismiss = { showQuizletOptionsModal = false }
+        )
+    }
+
+    if (isQuizletCompleted) {
+        QuizletDeckCompletionDialog(
+            memorizedCount = memorizedIndices.size,
+            stillLearningCount = stillLearningIndices.size,
+            onContinueUnmemorized = { viewModel.continueQuizletStillLearning() },
+            onResetDeck = { viewModel.resetQuizletProgress() },
+            onBackToHome = { viewModel.backToSetup() }
+        )
     }
 
     // Dialog displaying list of upcoming and past questions for selective learning
@@ -1737,6 +2097,29 @@ fun PracticeScreenView(
                     }
                 }
             }
+            .pointerInput(currentIndex, isQuizletSorting) {
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { change, dragAmount ->
+                        if (isQuizletSorting) {
+                            change.consume()
+                            dragAmountX += dragAmount
+                        }
+                    },
+                    onDragEnd = {
+                        if (isQuizletSorting) {
+                            if (dragAmountX < -dragThreshold) {
+                                viewModel.markQuizletCard(memorized = false)
+                            } else if (dragAmountX > dragThreshold) {
+                                viewModel.markQuizletCard(memorized = true)
+                            }
+                        }
+                        dragAmountX = 0f
+                    },
+                    onDragCancel = {
+                        dragAmountX = 0f
+                    }
+                )
+            }
             .pointerInput(currentIndex) {
                 detectVerticalDragGestures(
                     onVerticalDrag = { change, dragAmount ->
@@ -1769,12 +2152,12 @@ fun PracticeScreenView(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .clickable { showQuestionSelector = true }
                 .padding(vertical = 4.dp, horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
+                modifier = Modifier.clickable { showQuestionSelector = true },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -1785,7 +2168,7 @@ fun PracticeScreenView(
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
-                    text = "CÂU ${currentIndex + 1} / $total (Danh sách ▾)",
+                    text = "${currentIndex + 1} / $total (Danh sách ▾)",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary
@@ -1822,24 +2205,39 @@ fun PracticeScreenView(
                         color = if (isAutoPlaying) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     )
                 }
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (currentDirection == "vi")
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        else
-                            Color(0xFF10B981).copy(alpha = 0.15f)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (currentDirection == "vi")
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            else
+                                Color(0xFF10B981).copy(alpha = 0.15f)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = directionBadgeText,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (currentDirection == "vi") MaterialTheme.colorScheme.primary else Color(0xFF10B981)
                     )
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = directionBadgeText,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (currentDirection == "vi") MaterialTheme.colorScheme.primary else Color(0xFF10B981)
-                )
-            }
+                }
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { showQuizletOptionsModal = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Tùy chọn thẻ ghi nhớ",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
             }
         }
 
@@ -1862,7 +2260,19 @@ fun PracticeScreenView(
             trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        if (isQuizletSorting) {
+            Spacer(modifier = Modifier.height(8.dp))
+            QuizletSortingTopBar(
+                stillLearningCount = stillLearningIndices.size,
+                memorizedCount = memorizedIndices.size,
+                onMarkStillLearning = { viewModel.markQuizletCard(memorized = false) },
+                onMarkMemorized = { viewModel.markQuizletCard(memorized = true) },
+                onOpenQuizletOptions = { showQuizletOptionsModal = true }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        } else {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         // Large Flashcard sliding, Swiping and Double-Tap area (Dynamic size to prevent card squeezing)
         Box(
@@ -1885,7 +2295,7 @@ fun PracticeScreenView(
                 },
                 modifier = Modifier.fillMaxWidth().wrapContentHeight()
             ) { targetIndex ->
-                val activePair = practicePairs[targetIndex]
+                val activePair = practicePairs.getOrNull(targetIndex) ?: currentPair
                 val activePromptText = if (currentDirection == "vi") activePair.vi else activePair.foreign
                                 var searchSourceOriginal by remember { mutableStateOf(true) }
                 val activeAnswerText = if (currentDirection == "vi") activePair.foreign else activePair.vi
@@ -2732,7 +3142,53 @@ fun PracticeScreenView(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (isQuizletSorting) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = { viewModel.markQuizletCard(memorized = false) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFD97706)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color(0xFFD97706).copy(alpha = 0.12f),
+                        contentColor = Color(0xFFF59E0B)
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Chưa nhớ (Trái)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+
+                OutlinedButton(
+                    onClick = { viewModel.markQuizletCard(memorized = true) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF10B981)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color(0xFF10B981).copy(alpha = 0.12f),
+                        contentColor = Color(0xFF34D399)
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Đã nhớ (Phải)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
 
         // Bottom horizontal navigation option bars: "Quay lại, Kiểm tra, Xem đáp án, Bỏ qua"
         Row(

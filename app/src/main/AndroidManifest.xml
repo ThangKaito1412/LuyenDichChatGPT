@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -56,6 +58,30 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".PassiveStudyReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.LockscreenService.ACTION_PREV_WORD" />
+                <action android:name="com.example.LockscreenService.ACTION_NEXT_WORD" />
+                <action android:name="com.example.LockscreenService.ACTION_SPEAK_WORD" />
+                <action android:name="com.example.LockscreenService.ACTION_RESTORE_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".VocabAppWidgetProvider"
+            android:exported="true"
+            android:label="Tiện ích Từ vựng Luyện Dịch">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/vocab_widget_info" />
         </receiver>
     </application>
 

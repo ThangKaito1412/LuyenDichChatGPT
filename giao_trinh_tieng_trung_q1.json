@@ -1,0 +1,4410 @@
+{
+  "book_title": "GIÁO TRÌNH TIẾNG TRUNG QUYỂN 1",
+  "book_id": "q1",
+  "source_file": "GIÁO TRÌNH TIẾNG TRUNG Q1.pdf",
+  "total_sections": 13,
+  "total_vocab": 529,
+  "sections": [
+    {
+      "id": "bai_01",
+      "type": "bai_hoc",
+      "title_raw": "第一课  Dì yī kè： 你好!  Nǐ hǎo! / Bài 1 :  XIN CHÀO！",
+      "title_cn": "Dì yī kè： 你好!",
+      "title_pinyin": "Nǐ hǎo!",
+      "title_vi": "XIN CHÀO！",
+      "page_start": 1,
+      "page_end": 4,
+      "vocab_count": 27,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "我",
+          "pinyin": "Wǒ",
+          "meaning_vi": "Tôi",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 2,
+          "hanzi": "你",
+          "pinyin": "Nǐ",
+          "meaning_vi": "Bạn, chị, anh, em, ông, bà,...",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 3,
+          "hanzi": "很",
+          "pinyin": "Hěn",
+          "meaning_vi": "Rất",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 4,
+          "hanzi": "好",
+          "pinyin": "Hǎo",
+          "meaning_vi": "Khỏe, tốt, được, ok",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 5,
+          "hanzi": "吗",
+          "pinyin": "Ma",
+          "meaning_vi": "Trợ từ để hỏi: không?",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 6,
+          "hanzi": "他",
+          "pinyin": "Tā",
+          "meaning_vi": "Anh ấy",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 7,
+          "hanzi": "她",
+          "pinyin": "Tā",
+          "meaning_vi": "Cô ấy",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 8,
+          "hanzi": "它",
+          "pinyin": "Tā",
+          "meaning_vi": "Nó, cái đó, điều đó",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 9,
+          "hanzi": "我们",
+          "pinyin": "Wǒ men",
+          "meaning_vi": "Chúng tôi, chúng ta",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 10,
+          "hanzi": "他们",
+          "pinyin": "Tā men",
+          "meaning_vi": "Chúng nó, họ",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 11,
+          "hanzi": "你们",
+          "pinyin": "Nǐ men",
+          "meaning_vi": "Các bạn, các anh, các chị,...",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 12,
+          "hanzi": "来",
+          "pinyin": "Lái",
+          "meaning_vi": "Đến",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 13,
+          "hanzi": "妈妈",
+          "pinyin": "Mā mā",
+          "meaning_vi": "Mẹ, má",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 14,
+          "hanzi": "爸爸",
+          "pinyin": "Bàba",
+          "meaning_vi": "Bố, ba",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 15,
+          "hanzi": "妹妹",
+          "pinyin": "Mèi mei",
+          "meaning_vi": "Em gái",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 16,
+          "hanzi": "姐姐",
+          "pinyin": "Jiějie",
+          "meaning_vi": "Chị gái",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 17,
+          "hanzi": "弟弟",
+          "pinyin": "Dì dì",
+          "meaning_vi": "Em trai",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 18,
+          "hanzi": "哥哥",
+          "pinyin": "Gē gē",
+          "meaning_vi": "Anh trai",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 19,
+          "hanzi": "呢",
+          "pinyin": "Ne",
+          "meaning_vi": "Trợ từ ngữ khí (còn)",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 20,
+          "hanzi": "不",
+          "pinyin": "Bù",
+          "meaning_vi": "Không",
+          "type": "từ mới",
+          "page": 1
+        },
+        {
+          "index": 21,
+          "hanzi": "也",
+          "pinyin": "Yě",
+          "meaning_vi": "Cũng",
+          "type": "từ mới",
+          "page": 2
+        },
+        {
+          "index": 22,
+          "hanzi": "都",
+          "pinyin": "Dōu",
+          "meaning_vi": "Đều",
+          "type": "từ mới",
+          "page": 2
+        },
+        {
+          "index": 23,
+          "hanzi": "Định ngữ + 的",
+          "pinyin": "De (của) + Trung tâm ngữ",
+          "meaning_vi": "Đây là cụm danh từ, dùng khi",
+          "type": "từ mới",
+          "page": 2
+        },
+        {
+          "index": 1,
+          "hanzi": "阿明",
+          "pinyin": "Ā míng",
+          "meaning_vi": "Minh",
+          "type": "danh từ riêng",
+          "page": 2
+        },
+        {
+          "index": 2,
+          "hanzi": "阿山",
+          "pinyin": "Ā shān",
+          "meaning_vi": "Sơn",
+          "type": "danh từ riêng",
+          "page": 2
+        },
+        {
+          "index": 3,
+          "hanzi": "阿青",
+          "pinyin": "Ā qīng",
+          "meaning_vi": "Thanh",
+          "type": "danh từ riêng",
+          "page": 2
+        },
+        {
+          "index": 4,
+          "hanzi": "阿男",
+          "pinyin": "Ā nán",
+          "meaning_vi": "Nam",
+          "type": "danh từ riêng",
+          "page": 2
+        }
+      ]
+    },
+    {
+      "id": "bai_02",
+      "type": "bai_hoc",
+      "title_raw": "第二课 Dì èr kè： 我身体很好！  Wǒ shēn tǐ hěn hǎo! / Bài 2 :  SỨC KHỎE TÔI RẤT TỐT !",
+      "title_cn": "Dì èr kè： 我身体很好！",
+      "title_pinyin": "Wǒ shēn tǐ hěn hǎo!",
+      "title_vi": "SỨC KHỎE TÔI RẤT TỐT !",
+      "page_start": 5,
+      "page_end": 9,
+      "vocab_count": 35,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "早/早上",
+          "pinyin": "Zǎo/Zǎoshang",
+          "meaning_vi": "Sáng, sáng sớm",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 2,
+          "hanzi": "谢谢",
+          "pinyin": "Xiè xiè",
+          "meaning_vi": "Cảm ơn",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 3,
+          "hanzi": "再见",
+          "pinyin": "Zài jiàn",
+          "meaning_vi": "Tạm biệt",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 4,
+          "hanzi": "身体",
+          "pinyin": "Shēn tǐ",
+          "meaning_vi": "Cơ thể, sức khỏe",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 5,
+          "hanzi": "老师",
+          "pinyin": "Lǎo shī",
+          "meaning_vi": "Giáo viên, thầy, cô",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 6,
+          "hanzi": "您",
+          "pinyin": "Nín",
+          "meaning_vi": "Ngài, ông, bà",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 7,
+          "hanzi": "一",
+          "pinyin": "Yī",
+          "meaning_vi": "1",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 8,
+          "hanzi": "二",
+          "pinyin": "Èr",
+          "meaning_vi": "2",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 9,
+          "hanzi": "三",
+          "pinyin": "Sān",
+          "meaning_vi": "3",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 10,
+          "hanzi": "四",
+          "pinyin": "Sì",
+          "meaning_vi": "4",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 11,
+          "hanzi": "五",
+          "pinyin": "Wǔ",
+          "meaning_vi": "5",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 12,
+          "hanzi": "六",
+          "pinyin": "Liù",
+          "meaning_vi": "6",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 13,
+          "hanzi": "七",
+          "pinyin": "Qī",
+          "meaning_vi": "7",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 14,
+          "hanzi": "八",
+          "pinyin": "Bā",
+          "meaning_vi": "8",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 15,
+          "hanzi": "九",
+          "pinyin": "Jiǔ",
+          "meaning_vi": "9",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 16,
+          "hanzi": "十",
+          "pinyin": "Shí",
+          "meaning_vi": "10",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 17,
+          "hanzi": "十一",
+          "pinyin": "Shí yī",
+          "meaning_vi": "11",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 18,
+          "hanzi": "十九",
+          "pinyin": "Shí jiǔ",
+          "meaning_vi": "19",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 19,
+          "hanzi": "二十",
+          "pinyin": "Èr shí",
+          "meaning_vi": "20",
+          "type": "từ mới",
+          "page": 5
+        },
+        {
+          "index": 20,
+          "hanzi": "二十八",
+          "pinyin": "Èr shí bā",
+          "meaning_vi": "28",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 21,
+          "hanzi": "六十七",
+          "pinyin": "Liù shí qī",
+          "meaning_vi": "67",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 22,
+          "hanzi": "九十九",
+          "pinyin": "Jiǔ shí jiǔ",
+          "meaning_vi": "99",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 23,
+          "hanzi": "号",
+          "pinyin": "Hào",
+          "meaning_vi": "Ngày, số",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 24,
+          "hanzi": "日",
+          "pinyin": "Rì",
+          "meaning_vi": "Ngày (dùng trong văn viết)",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 25,
+          "hanzi": "今天",
+          "pinyin": "Jīn tiān",
+          "meaning_vi": "Hôm nay",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 26,
+          "hanzi": "对不起",
+          "pinyin": "Duì bù qǐ",
+          "meaning_vi": "Xin lỗi, lỗi",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 27,
+          "hanzi": "客气",
+          "pinyin": "Kè qì",
+          "meaning_vi": "Khách sáo",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 28,
+          "hanzi": "不客气",
+          "pinyin": "Bù kè qì",
+          "meaning_vi": "Đừng khách sáo",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 29,
+          "hanzi": "不用谢",
+          "pinyin": "Bù yòng xiè",
+          "meaning_vi": "Không cần cảm ơn",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 30,
+          "hanzi": "没关系",
+          "pinyin": "Méi guān xì",
+          "meaning_vi": "Khôg sao, khôg việc gì, đừng ngại",
+          "type": "từ mới",
+          "page": 6
+        },
+        {
+          "index": 31,
+          "hanzi": "小李",
+          "pinyin": "Xiǎo lǐ",
+          "meaning_vi": "Tiểu Lý",
+          "type": "danh từ riêng",
+          "page": 6
+        },
+        {
+          "index": 32,
+          "hanzi": "王兰",
+          "pinyin": "Wáng lán",
+          "meaning_vi": "Vương Lan",
+          "type": "danh từ riêng",
+          "page": 6
+        },
+        {
+          "index": 33,
+          "hanzi": "李",
+          "pinyin": "Lǐ",
+          "meaning_vi": "Lý",
+          "type": "danh từ riêng",
+          "page": 6
+        },
+        {
+          "index": 34,
+          "hanzi": "张",
+          "pinyin": "Zhāng",
+          "meaning_vi": "Trương",
+          "type": "danh từ riêng",
+          "page": 6
+        },
+        {
+          "index": 35,
+          "hanzi": "王",
+          "pinyin": "Wáng",
+          "meaning_vi": "Vương",
+          "type": "danh từ riêng",
+          "page": 6
+        }
+      ]
+    },
+    {
+      "id": "bai_03",
+      "type": "bai_hoc",
+      "title_raw": "第三课 Dì sān kè ： 今天你工作累吗？ Jīntiān nǐ gōngzuò lèi ma? / Bài 3 :   HÔM NAY CÔNG VIỆC BẠN MỆT KHÔNG?",
+      "title_cn": "Dì sān kè ： 今天你工作累吗？ Jīntiān nǐ gōngzuò lèi ma?",
+      "title_pinyin": "",
+      "title_vi": "HÔM NAY CÔNG VIỆC BẠN MỆT KHÔNG?",
+      "page_start": 10,
+      "page_end": 14,
+      "vocab_count": 22,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "零",
+          "pinyin": "Líng",
+          "meaning_vi": "Số 0",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 2,
+          "hanzi": "一百",
+          "pinyin": "Yī bǎi",
+          "meaning_vi": "100",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 3,
+          "hanzi": "一千",
+          "pinyin": "Yī qiān",
+          "meaning_vi": "1.000",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 4,
+          "hanzi": "一万",
+          "pinyin": "Yī wàn",
+          "meaning_vi": "10.000",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 5,
+          "hanzi": "一百五十",
+          "pinyin": "Yī bǎi wǔ shí",
+          "meaning_vi": "150",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 6,
+          "hanzi": "一千六百",
+          "pinyin": "Yī qiān liù bǎi",
+          "meaning_vi": "1.600",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 7,
+          "hanzi": "三万",
+          "pinyin": "Sān wàn",
+          "meaning_vi": "30.000",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 8,
+          "hanzi": "工作",
+          "pinyin": "Gōng zuò",
+          "meaning_vi": "Công việc, làm việc",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 9,
+          "hanzi": "忙",
+          "pinyin": "Máng",
+          "meaning_vi": "Bận",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 11,
+          "hanzi": "累",
+          "pinyin": "Lèi",
+          "meaning_vi": "Mệt",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 12,
+          "hanzi": "月",
+          "pinyin": "Yuè",
+          "meaning_vi": "Tháng",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 13,
+          "hanzi": "年",
+          "pinyin": "Nián",
+          "meaning_vi": "Năm",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 14,
+          "hanzi": "今天",
+          "pinyin": "Jīn tiān",
+          "meaning_vi": "Hôm nay",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 15,
+          "hanzi": "今年",
+          "pinyin": "Jīn nián",
+          "meaning_vi": "Năm nay",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 17,
+          "hanzi": "明年",
+          "pinyin": "Míng nián",
+          "meaning_vi": "Năm sau",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 18,
+          "hanzi": "昨天",
+          "pinyin": "Zuó tiān",
+          "meaning_vi": "Hôm qua",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 19,
+          "hanzi": "去年/上年",
+          "pinyin": "Qù nián/shàng nián",
+          "meaning_vi": "Năm trước, năm ngoái",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 20,
+          "hanzi": "是",
+          "pinyin": "Shì",
+          "meaning_vi": "Là, phải, vâng",
+          "type": "từ mới",
+          "page": 10
+        },
+        {
+          "index": 21,
+          "hanzi": "缘",
+          "pinyin": "Yuán",
+          "meaning_vi": "Duyên",
+          "type": "danh từ riêng",
+          "page": 11
+        },
+        {
+          "index": 22,
+          "hanzi": "燕",
+          "pinyin": "Yàn",
+          "meaning_vi": "Yến",
+          "type": "danh từ riêng",
+          "page": 11
+        },
+        {
+          "index": 23,
+          "hanzi": "强",
+          "pinyin": "Qiáng",
+          "meaning_vi": "Cường",
+          "type": "danh từ riêng",
+          "page": 11
+        },
+        {
+          "index": 24,
+          "hanzi": "林",
+          "pinyin": "Lín",
+          "meaning_vi": "Lâm",
+          "type": "danh từ riêng",
+          "page": 11
+        }
+      ]
+    },
+    {
+      "id": "bai_04",
+      "type": "bai_hoc",
+      "title_raw": "第四课： 你是哪儿国人？  Nǐ shì nǎr guó rén? / Bài 4 :  BẠN LÀ NGƯỜI NƯỚC NÀO?",
+      "title_cn": "你是哪儿国人？",
+      "title_pinyin": "Nǐ shì nǎr guó rén?",
+      "title_vi": "BẠN LÀ NGƯỜI NƯỚC NÀO?",
+      "page_start": 15,
+      "page_end": 21,
+      "vocab_count": 27,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "叫",
+          "pinyin": "Jiào",
+          "meaning_vi": "Tên, gọi, kêu",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 2,
+          "hanzi": "名字",
+          "pinyin": "Míng zì",
+          "meaning_vi": "Tên",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 3,
+          "hanzi": "贵姓",
+          "pinyin": "Guì xìng",
+          "meaning_vi": "Họ, quý danh",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 4,
+          "hanzi": "姓",
+          "pinyin": "Xìng",
+          "meaning_vi": "Họ",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 5,
+          "hanzi": "认识",
+          "pinyin": "Rènshi",
+          "meaning_vi": "Quen, quen biết",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 6,
+          "hanzi": "高兴",
+          "pinyin": "Gāo xìng",
+          "meaning_vi": "Vui vẻ, vui mừng",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 7,
+          "hanzi": "什么",
+          "pinyin": "Shén me",
+          "meaning_vi": "Cái gì, gì",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 8,
+          "hanzi": "学生",
+          "pinyin": "Xué shēng",
+          "meaning_vi": "Học sinh",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 9,
+          "hanzi": "医院",
+          "pinyin": "Yī yuàn",
+          "meaning_vi": "Bệnh viện",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 10,
+          "hanzi": "大夫/医生",
+          "pinyin": "Dài fū/yī shēng",
+          "meaning_vi": "Bác sĩ, đại phu",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 11,
+          "hanzi": "那",
+          "pinyin": "Nà",
+          "meaning_vi": "Kia, đó",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 12,
+          "hanzi": "哪",
+          "pinyin": "Nǎ",
+          "meaning_vi": "Nào, đâu",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 13,
+          "hanzi": "这",
+          "pinyin": "Zhè",
+          "meaning_vi": "Đây, này",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 14,
+          "hanzi": "个",
+          "pinyin": "Gè",
+          "meaning_vi": "Cái (lượng từ)",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 15,
+          "hanzi": "人",
+          "pinyin": "Rén",
+          "meaning_vi": "Người",
+          "type": "từ mới",
+          "page": 15
+        },
+        {
+          "index": 16,
+          "hanzi": "朋友",
+          "pinyin": "Péng yǒu",
+          "meaning_vi": "Bạn bè, bằng hữu",
+          "type": "từ mới",
+          "page": 16
+        },
+        {
+          "index": 17,
+          "hanzi": "越南",
+          "pinyin": "Yuè nán",
+          "meaning_vi": "Việt Nam",
+          "type": "từ mới",
+          "page": 16
+        },
+        {
+          "index": 18,
+          "hanzi": "中国",
+          "pinyin": "Zhōng guó",
+          "meaning_vi": "Trung Quốc",
+          "type": "từ mới",
+          "page": 16
+        },
+        {
+          "index": 19,
+          "hanzi": "美国",
+          "pinyin": "Měi guó",
+          "meaning_vi": "Mỹ",
+          "type": "từ mới",
+          "page": 16
+        },
+        {
+          "index": 20,
+          "hanzi": "泰国",
+          "pinyin": "Tài guó",
+          "meaning_vi": "Thái Lan",
+          "type": "từ mới",
+          "page": 16
+        },
+        {
+          "index": 21,
+          "hanzi": "国",
+          "pinyin": "guó",
+          "meaning_vi": "Nước, quốc gia",
+          "type": "từ mới",
+          "page": 16
+        },
+        {
+          "index": 22,
+          "hanzi": "员工",
+          "pinyin": "Yuán gōng",
+          "meaning_vi": "Công nhân viên",
+          "type": "từ mới",
+          "page": 16
+        },
+        {
+          "index": 23,
+          "hanzi": "文全",
+          "pinyin": "Wén quán",
+          "meaning_vi": "Văn Toàn",
+          "type": "danh từ riêng",
+          "page": 16
+        },
+        {
+          "index": 24,
+          "hanzi": "黄海",
+          "pinyin": "Huáng hǎi",
+          "meaning_vi": "Hoàng Hải",
+          "type": "danh từ riêng",
+          "page": 16
+        },
+        {
+          "index": 25,
+          "hanzi": "阮",
+          "pinyin": "Ruǎn",
+          "meaning_vi": "Nguyễn",
+          "type": "danh từ riêng",
+          "page": 16
+        },
+        {
+          "index": 26,
+          "hanzi": "小",
+          "pinyin": "Xiǎo",
+          "meaning_vi": "Nhỏ, Tiểu",
+          "type": "danh từ riêng",
+          "page": 16
+        },
+        {
+          "index": 27,
+          "hanzi": "福善",
+          "pinyin": "Fú shàn",
+          "meaning_vi": "Phước Thiện",
+          "type": "danh từ riêng",
+          "page": 16
+        }
+      ]
+    },
+    {
+      "id": "bai_05",
+      "type": "bai_hoc",
+      "title_raw": "第五课 Dì wǔ kè：你去哪儿 Nǐ qù nǎr? / Bài 5 :  BẠN ĐI ĐÂU?",
+      "title_cn": "Dì wǔ kè：你去哪儿 Nǐ qù nǎr?",
+      "title_pinyin": "",
+      "title_vi": "BẠN ĐI ĐÂU?",
+      "page_start": 22,
+      "page_end": 27,
+      "vocab_count": 33,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "在",
+          "pinyin": "Zài",
+          "meaning_vi": "Ở, đang",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 2,
+          "hanzi": "家",
+          "pinyin": "Jiā",
+          "meaning_vi": "Nhà",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 3,
+          "hanzi": "的",
+          "pinyin": "De",
+          "meaning_vi": "Trợ từ kết cấu (của)",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 4,
+          "hanzi": "请",
+          "pinyin": "Qǐng",
+          "meaning_vi": "Mời, xin, đề nghị",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 5,
+          "hanzi": "进",
+          "pinyin": "Jìn",
+          "meaning_vi": "Vào",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 6,
+          "hanzi": "商店",
+          "pinyin": "Shāng diàn",
+          "meaning_vi": "Cửa hàng",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 7,
+          "hanzi": "看",
+          "pinyin": "Kàn",
+          "meaning_vi": "Nhìn, xem, thăm",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 8,
+          "hanzi": "谁",
+          "pinyin": "Shúi",
+          "meaning_vi": "Ai",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 9,
+          "hanzi": "介绍",
+          "pinyin": "Jiè shào",
+          "meaning_vi": "Giới thiệu",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 11,
+          "hanzi": "去",
+          "pinyin": "Qù",
+          "meaning_vi": "Đi",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 12,
+          "hanzi": "哪儿",
+          "pinyin": "Nǎ'r",
+          "meaning_vi": "Đâu",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 13,
+          "hanzi": "休息",
+          "pinyin": "Xiū xī",
+          "meaning_vi": "Nghỉ ngơi",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 14,
+          "hanzi": "公司",
+          "pinyin": "Gōng sī",
+          "meaning_vi": "Công ty",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 15,
+          "hanzi": "回",
+          "pinyin": "Huí",
+          "meaning_vi": "Về, trở về",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 16,
+          "hanzi": "宿舍",
+          "pinyin": "Sù shè",
+          "meaning_vi": "Kí túc xá",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 17,
+          "hanzi": "会议室",
+          "pinyin": "Huì yì shì",
+          "meaning_vi": "Phòng họp",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 18,
+          "hanzi": "网吧",
+          "pinyin": "Wǎng bā",
+          "meaning_vi": "Tiệm internet",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 19,
+          "hanzi": "超市",
+          "pinyin": "Chāo shì",
+          "meaning_vi": "Siêu thị",
+          "type": "từ mới",
+          "page": 22
+        },
+        {
+          "index": 20,
+          "hanzi": "宝玉",
+          "pinyin": "Bǎo yù",
+          "meaning_vi": "Bảo Ngọc",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 21,
+          "hanzi": "国荣",
+          "pinyin": "Guó róng",
+          "meaning_vi": "Quốc Vinh",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 22,
+          "hanzi": "黎",
+          "pinyin": "Lí",
+          "meaning_vi": "Họ Lê",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 23,
+          "hanzi": "陈",
+          "pinyin": "Chén",
+          "meaning_vi": "Họ Trần",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 24,
+          "hanzi": "妻子/老婆",
+          "pinyin": "Qīzi/lǎo pó",
+          "meaning_vi": "Vợ, bà xã",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 25,
+          "hanzi": "老公",
+          "pinyin": "Lǎo gōng",
+          "meaning_vi": "Chồng",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 26,
+          "hanzi": "儿子",
+          "pinyin": "Érzi",
+          "meaning_vi": "Con trai",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 27,
+          "hanzi": "女儿",
+          "pinyin": "Nǚ'ér",
+          "meaning_vi": "Con gái",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 28,
+          "hanzi": "奶奶",
+          "pinyin": "Nǎinai",
+          "meaning_vi": "Bà nội",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 29,
+          "hanzi": "爷爷",
+          "pinyin": "Yéyé",
+          "meaning_vi": "Ông nội",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 30,
+          "hanzi": "外婆",
+          "pinyin": "Wài pó",
+          "meaning_vi": "Bà ngoại",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 31,
+          "hanzi": "外公",
+          "pinyin": "Wài gōng",
+          "meaning_vi": "Ông ngoại",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 32,
+          "hanzi": "舅舅",
+          "pinyin": "Jiùjiu",
+          "meaning_vi": "Cậu",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 33,
+          "hanzi": "叔叔",
+          "pinyin": "Shūshu",
+          "meaning_vi": "Chú",
+          "type": "danh từ riêng",
+          "page": 23
+        },
+        {
+          "index": 34,
+          "hanzi": "阿姨",
+          "pinyin": "Ā yí",
+          "meaning_vi": "Dì, cô",
+          "type": "danh từ riêng",
+          "page": 23
+        }
+      ]
+    },
+    {
+      "id": "bai_06",
+      "type": "bai_hoc",
+      "title_raw": "第六课Dì liù kè： 今天是星期几？ Jīn tiān shì xīng qī jǐ? / Bài 6 :   HÔM NAY LÀ THỨ MẤY?",
+      "title_cn": "Dì liù kè： 今天是星期几？ Jīn tiān shì xīng qī jǐ?",
+      "title_pinyin": "",
+      "title_vi": "HÔM NAY LÀ THỨ MẤY?",
+      "page_start": 28,
+      "page_end": 35,
+      "vocab_count": 47,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "几",
+          "pinyin": "Jǐ",
+          "meaning_vi": "Mấy",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 2,
+          "hanzi": "星期",
+          "pinyin": "Xīng qī",
+          "meaning_vi": "Thứ, tuần lễ",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 3,
+          "hanzi": "(礼拜)",
+          "pinyin": "(Lǐbài)",
+          "meaning_vi": "Thứ, tuần lễ",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 4,
+          "hanzi": "(周)",
+          "pinyin": "(Zhōu)",
+          "meaning_vi": "Thứ, tuần lễ",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 5,
+          "hanzi": "星期一",
+          "pinyin": "Xīngqī yī",
+          "meaning_vi": "Thứ 2",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 6,
+          "hanzi": "星期二",
+          "pinyin": "Xīngqī'èr",
+          "meaning_vi": "Thứ 3",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 7,
+          "hanzi": "星期三",
+          "pinyin": "Xīngqī sān",
+          "meaning_vi": "Thứ 4",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 8,
+          "hanzi": "星期四",
+          "pinyin": "Xīngqī sì",
+          "meaning_vi": "Thứ 5",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 9,
+          "hanzi": "星期五",
+          "pinyin": "Xīngqī wǔ",
+          "meaning_vi": "Thứ 6",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 10,
+          "hanzi": "星期六",
+          "pinyin": "Xīngqī liù",
+          "meaning_vi": "Thứ 7",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 11,
+          "hanzi": "星期日",
+          "pinyin": "Xīngqī rì",
+          "meaning_vi": "Chủ nhật",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 12,
+          "hanzi": "星期天",
+          "pinyin": "Xīng qī tiān",
+          "meaning_vi": "Chủ nhật",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 13,
+          "hanzi": "早上",
+          "pinyin": "Zǎoshang",
+          "meaning_vi": "Sáng sớm",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 14,
+          "hanzi": "上午",
+          "pinyin": "Shàng wǔ",
+          "meaning_vi": "Buổi sáng",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 15,
+          "hanzi": "中午",
+          "pinyin": "Zhōng wǔ",
+          "meaning_vi": "Buổi trưa",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 16,
+          "hanzi": "下午",
+          "pinyin": "Xià wǔ",
+          "meaning_vi": "Buổi chiều",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 17,
+          "hanzi": "晚上",
+          "pinyin": "Wǎn shàng",
+          "meaning_vi": "Buổi tối",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 18,
+          "hanzi": "晚安",
+          "pinyin": "Wǎn'ān",
+          "meaning_vi": "Chúc ngủ ngon, chào buổi tối",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 19,
+          "hanzi": "做",
+          "pinyin": "Zuò",
+          "meaning_vi": "Làm",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 20,
+          "hanzi": "上网",
+          "pinyin": "Shàng wǎng",
+          "meaning_vi": "Lên mạng",
+          "type": "từ mới",
+          "page": 28
+        },
+        {
+          "index": 21,
+          "hanzi": "电影",
+          "pinyin": "Diàn yǐng",
+          "meaning_vi": "Phim",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 22,
+          "hanzi": "电视",
+          "pinyin": "Diàn shì",
+          "meaning_vi": "Ti vi",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 23,
+          "hanzi": "书",
+          "pinyin": "Shū",
+          "meaning_vi": "Sách",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 24,
+          "hanzi": "报",
+          "pinyin": "Bào",
+          "meaning_vi": "Báo",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 25,
+          "hanzi": "音乐",
+          "pinyin": "Yīn yuè",
+          "meaning_vi": "Nhạc, âm nhạc",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 26,
+          "hanzi": "听",
+          "pinyin": "Tīng",
+          "meaning_vi": "Nghe",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 27,
+          "hanzi": "说",
+          "pinyin": "Shuō",
+          "meaning_vi": "Nói",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 28,
+          "hanzi": "写",
+          "pinyin": "Xiě",
+          "meaning_vi": "Viết",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 29,
+          "hanzi": "读",
+          "pinyin": "Dú",
+          "meaning_vi": "Đọ c, họ c",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 30,
+          "hanzi": "信",
+          "pinyin": "Xìn",
+          "meaning_vi": "Thư",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 31,
+          "hanzi": "酒吧",
+          "pinyin": "Jiǔ bā",
+          "meaning_vi": "Quán bar, quán rượu",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 32,
+          "hanzi": "买",
+          "pinyin": "Mǎi",
+          "meaning_vi": "Mua",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 33,
+          "hanzi": "卖",
+          "pinyin": "Mài",
+          "meaning_vi": "Bán",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 34,
+          "hanzi": "东西",
+          "pinyin": "Dōng xī",
+          "meaning_vi": "Đồ, đồ đạc",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 35,
+          "hanzi": "岁",
+          "pinyin": "Suì",
+          "meaning_vi": "Tuổi",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 36,
+          "hanzi": "上班",
+          "pinyin": "Shàng bān",
+          "meaning_vi": "Đi làm, lên ca",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 37,
+          "hanzi": "下班",
+          "pinyin": "Xià bān",
+          "meaning_vi": "Tan ca, xuống ca",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 38,
+          "hanzi": "加班",
+          "pinyin": "Jiā bān",
+          "meaning_vi": "Tăng ca",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 39,
+          "hanzi": "白班",
+          "pinyin": "Bái bān",
+          "meaning_vi": "Ca ngày",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 40,
+          "hanzi": "夜班",
+          "pinyin": "Yè bān",
+          "meaning_vi": "Ca đêm",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 41,
+          "hanzi": "这(个)星期",
+          "pinyin": "Zhè (gè) xīngqī",
+          "meaning_vi": "Tuần này",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 42,
+          "hanzi": "下(个)星期",
+          "pinyin": "Xià (gè) xīngqī",
+          "meaning_vi": "Tuần sau",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 43,
+          "hanzi": "上(个)星期",
+          "pinyin": "Shàng (gè) xīngqī",
+          "meaning_vi": "Tuần trước",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 44,
+          "hanzi": "生日",
+          "pinyin": "Shēngrì",
+          "meaning_vi": "Sinh nhật",
+          "type": "từ mới",
+          "page": 29
+        },
+        {
+          "index": 45,
+          "hanzi": "和",
+          "pinyin": "Hé",
+          "meaning_vi": "Và, với, cùng",
+          "type": "từ mới",
+          "page": 30
+        },
+        {
+          "index": 46,
+          "hanzi": "常常/常",
+          "pinyin": "Cháng cháng/cháng",
+          "meaning_vi": "Thường, thường xuyên",
+          "type": "từ mới",
+          "page": 30
+        },
+        {
+          "index": 47,
+          "hanzi": "那.........",
+          "pinyin": "Nà",
+          "meaning_vi": "Vậy........",
+          "type": "từ mới",
+          "page": 30
+        }
+      ]
+    },
+    {
+      "id": "bai_07",
+      "type": "bai_hoc",
+      "title_raw": "第七课Dì qī kè： 你在哪家公司工作？   Nǐ zài nǎ jiā gōngsī gōngzuò? / Bài 7 :   BẠN LÀM VIỆC Ở CÔNG TY NÀO ?",
+      "title_cn": "Dì qī kè： 你在哪家公司工作？",
+      "title_pinyin": "Nǐ zài nǎ jiā gōngsī gōngzuò?",
+      "title_vi": "BẠN LÀM VIỆC Ở CÔNG TY NÀO ?",
+      "page_start": 36,
+      "page_end": 43,
+      "vocab_count": 41,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "有",
+          "pinyin": "Yǒu",
+          "meaning_vi": "Có",
+          "type": "từ mới",
+          "page": 36
+        },
+        {
+          "index": 2,
+          "hanzi": "口",
+          "pinyin": "Kǒu",
+          "meaning_vi": "Lượng từ dùng cho người trong gđ",
+          "type": "từ mới",
+          "page": 36
+        },
+        {
+          "index": 3,
+          "hanzi": "结婚",
+          "pinyin": "Jié hūn",
+          "meaning_vi": "Kết hôn",
+          "type": "từ mới",
+          "page": 36
+        },
+        {
+          "index": 4,
+          "hanzi": "了",
+          "pinyin": "Le",
+          "meaning_vi": "Rồi, đã (trợ từ)",
+          "type": "từ mới",
+          "page": 36
+        },
+        {
+          "index": 5,
+          "hanzi": "没",
+          "pinyin": "Méi",
+          "meaning_vi": "Chưa, không",
+          "type": "từ mới",
+          "page": 36
+        },
+        {
+          "index": 6,
+          "hanzi": "没有",
+          "pinyin": "Méi yǒu",
+          "meaning_vi": "Không có",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 7,
+          "hanzi": "孩子",
+          "pinyin": "Hái zi",
+          "meaning_vi": "Con, trẻ con",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 8,
+          "hanzi": "两",
+          "pinyin": "Liǎng",
+          "meaning_vi": "Hai",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 9,
+          "hanzi": "学习",
+          "pinyin": "Xué xí",
+          "meaning_vi": "Học tập",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 10,
+          "hanzi": "英语",
+          "pinyin": "Yīng yǔ",
+          "meaning_vi": "Tiếng Anh",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 11,
+          "hanzi": "英国",
+          "pinyin": "Yīng guó",
+          "meaning_vi": "Nước Anh",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 12,
+          "hanzi": "日语",
+          "pinyin": "Rì yǔ",
+          "meaning_vi": "Tiếng Nhật",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 13,
+          "hanzi": "日本",
+          "pinyin": "Rì běn",
+          "meaning_vi": "Nước Nhật",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 14,
+          "hanzi": "汉语/中文",
+          "pinyin": "Hàn yǔ/zhōng wén",
+          "meaning_vi": "Tiếng Trung, hán ngữ",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 15,
+          "hanzi": "韩语",
+          "pinyin": "Hán yǔ",
+          "meaning_vi": "Tiếng Hàn",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 16,
+          "hanzi": "台湾",
+          "pinyin": "Tái wān",
+          "meaning_vi": "Đài Loan",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 17,
+          "hanzi": "职员",
+          "pinyin": "Zhí yuán",
+          "meaning_vi": "Nhân viên",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 18,
+          "hanzi": "银行",
+          "pinyin": "Yín háng",
+          "meaning_vi": "Ngân hàng",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 19,
+          "hanzi": "爱人",
+          "pinyin": "Ài rén",
+          "meaning_vi": "Người yêu, vợ, chồng",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 20,
+          "hanzi": "护士",
+          "pinyin": "Hù shì",
+          "meaning_vi": "Y tá",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 21,
+          "hanzi": "上",
+          "pinyin": "Shàng",
+          "meaning_vi": "Lên, bắt đầu",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 22,
+          "hanzi": "下",
+          "pinyin": "Xià",
+          "meaning_vi": "Xuống, kết thúc",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 23,
+          "hanzi": "课",
+          "pinyin": "Kè",
+          "meaning_vi": "Lớp, bài học",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 24,
+          "hanzi": "上课",
+          "pinyin": "Shàng kè",
+          "meaning_vi": "Đi học, lên lớp",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 25,
+          "hanzi": "下课",
+          "pinyin": "Xià kè",
+          "meaning_vi": "Tan học",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 26,
+          "hanzi": "工业园/工业区",
+          "pinyin": "Gōng yè yuán/gōng yè qū",
+          "meaning_vi": "Khu công nghiệp",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 27,
+          "hanzi": "福东工业园",
+          "pinyin": "Fú dōng gōng yè yuán",
+          "meaning_vi": "KCN Phước Đông",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 28,
+          "hanzi": "翻译",
+          "pinyin": "Fān yì",
+          "meaning_vi": "Phiên dịch",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 29,
+          "hanzi": "家务",
+          "pinyin": "Jiā wù",
+          "meaning_vi": "Làm việc nhà, nội trợ",
+          "type": "từ mới",
+          "page": 37
+        },
+        {
+          "index": 30,
+          "hanzi": "秘书",
+          "pinyin": "Mì shū",
+          "meaning_vi": "Thư kí",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 31,
+          "hanzi": "助理",
+          "pinyin": "Zhù lǐ",
+          "meaning_vi": "Trợ lí",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 32,
+          "hanzi": "经理",
+          "pinyin": "Jīnglǐ",
+          "meaning_vi": "Giám đốc",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 33,
+          "hanzi": "副经理",
+          "pinyin": "Fù jīng lǐ",
+          "meaning_vi": "Phó Giám đốc",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 34,
+          "hanzi": "总经理",
+          "pinyin": "Zǒng jīng lǐ",
+          "meaning_vi": "Tổng giám đốc",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 35,
+          "hanzi": "主管",
+          "pinyin": "Zhǔ guǎn",
+          "meaning_vi": "Chủ quản",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 36,
+          "hanzi": "女",
+          "pinyin": "Nǚ",
+          "meaning_vi": "Nữ",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 37,
+          "hanzi": "男",
+          "pinyin": "Nán",
+          "meaning_vi": "Nam",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 38,
+          "hanzi": "组长",
+          "pinyin": "Zǔ zhǎng",
+          "meaning_vi": "Tổ trưởng",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 39,
+          "hanzi": "电脑",
+          "pinyin": "Diàn nǎo",
+          "meaning_vi": "Máy tính",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 40,
+          "hanzi": "手机",
+          "pinyin": "Shǒu jī",
+          "meaning_vi": "Điện thoại di động",
+          "type": "từ mới",
+          "page": 38
+        },
+        {
+          "index": 41,
+          "hanzi": "多",
+          "pinyin": "Duō",
+          "meaning_vi": "Nhiều",
+          "type": "từ mới",
+          "page": 38
+        }
+      ]
+    },
+    {
+      "id": "bai_08",
+      "type": "bai_hoc",
+      "title_raw": "第八课Dì bā kè：你喜欢什么运动？ Nǐ xǐ huān shénme yùn dòng? / Bài 8 :  BẠN THÍCH MÔN THỂ THAO NÀO ?",
+      "title_cn": "Dì bā kè：你喜欢什么运动？ Nǐ xǐ huān shénme yùn dòng?",
+      "title_pinyin": "",
+      "title_vi": "BẠN THÍCH MÔN THỂ THAO NÀO ?",
+      "page_start": 44,
+      "page_end": 51,
+      "vocab_count": 42,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "现在",
+          "pinyin": "Xiàn zài",
+          "meaning_vi": "Bây giờ, hiện tại",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 2,
+          "hanzi": "点",
+          "pinyin": "Diǎn",
+          "meaning_vi": "Giờ",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 3,
+          "hanzi": "分/分钟",
+          "pinyin": "Fēn/fēn zhōng",
+          "meaning_vi": "Phút",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 4,
+          "hanzi": "差",
+          "pinyin": "Chà",
+          "meaning_vi": "Kém, thiếu",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 5,
+          "hanzi": "一刻/三刻",
+          "pinyin": "Yī kè/sān kè",
+          "meaning_vi": "15 phút / 45 phút",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 6,
+          "hanzi": "吃",
+          "pinyin": "Chī",
+          "meaning_vi": "Ăn",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 7,
+          "hanzi": "饭",
+          "pinyin": "Fàn",
+          "meaning_vi": "Cơm",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 8,
+          "hanzi": "小时",
+          "pinyin": "Xiǎo shí",
+          "meaning_vi": "Tiếng, giờ đồng hồ",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 9,
+          "hanzi": "半/一半",
+          "pinyin": "Bàn/yī bàn",
+          "meaning_vi": "Nữa, rưỡi / 1 nữa",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 10,
+          "hanzi": "起床",
+          "pinyin": "Qǐ chuáng",
+          "meaning_vi": "Thức dậy",
+          "type": "từ mới",
+          "page": 44
+        },
+        {
+          "index": 11,
+          "hanzi": "床",
+          "pinyin": "Chuáng",
+          "meaning_vi": "Giường",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 12,
+          "hanzi": "花",
+          "pinyin": "Huā",
+          "meaning_vi": "Hoa",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 13,
+          "hanzi": "打",
+          "pinyin": "Dǎ",
+          "meaning_vi": "Đánh, chơi",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 14,
+          "hanzi": "篮球",
+          "pinyin": "Lán qiú：",
+          "meaning_vi": "Bóng rổ",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 15,
+          "hanzi": "排球",
+          "pinyin": "Pái qiú",
+          "meaning_vi": "Bóng chuyền",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 16,
+          "hanzi": "羽毛球",
+          "pinyin": "Yǔ máo qiú",
+          "meaning_vi": "Cầu lông",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 17,
+          "hanzi": "游戏",
+          "pinyin": "Yóu xì",
+          "meaning_vi": "Game, trò chơi",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 18,
+          "hanzi": "游泳",
+          "pinyin": "Yóu yǒng",
+          "meaning_vi": "Bơi lội",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 19,
+          "hanzi": "足球",
+          "pinyin": "Zú qiú",
+          "meaning_vi": "Bóng đá",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 20,
+          "hanzi": "跑步",
+          "pinyin": "Pǎo bù",
+          "meaning_vi": "Chạy bộ",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 21,
+          "hanzi": "吧",
+          "pinyin": "Ba",
+          "meaning_vi": "Trợ từ nghĩa khí: thôi, đi, nào, nhé...",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 22,
+          "hanzi": "食堂",
+          "pinyin": "Shí táng",
+          "meaning_vi": "Nhà ăn",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 23,
+          "hanzi": "睡觉",
+          "pinyin": "Shuì jiào",
+          "meaning_vi": "Ngủ",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 24,
+          "hanzi": "睡午觉",
+          "pinyin": "Shuì wǔ jiào",
+          "meaning_vi": "Ngủ trưa",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 25,
+          "hanzi": "中午饭",
+          "pinyin": "Zhōng wǔ fàn",
+          "meaning_vi": "Cơm trưa",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 26,
+          "hanzi": "早饭",
+          "pinyin": "Zǎo fàn",
+          "meaning_vi": "Ăn sáng",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 27,
+          "hanzi": "晚饭",
+          "pinyin": "Wǎn fàn",
+          "meaning_vi": "Cơm tối",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 28,
+          "hanzi": "时候",
+          "pinyin": "Shí hòu",
+          "meaning_vi": "Khi, lúc",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 29,
+          "hanzi": "什么时候？",
+          "pinyin": "Shén me shí hòu?",
+          "meaning_vi": "Khi nào?",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 30,
+          "hanzi": "一起",
+          "pinyin": "Yī qǐ",
+          "meaning_vi": "Cùng nhau",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 31,
+          "hanzi": "跟",
+          "pinyin": "Gēn",
+          "meaning_vi": "Cùng, và, với",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 32,
+          "hanzi": "等",
+          "pinyin": "Děng",
+          "meaning_vi": "Đợi",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 33,
+          "hanzi": "一会儿",
+          "pinyin": "Yī huì'r",
+          "meaning_vi": "1 chút, 1 lát, lúc thì",
+          "type": "từ mới",
+          "page": 45
+        },
+        {
+          "index": 34,
+          "hanzi": "运动",
+          "pinyin": "Yùn dòng",
+          "meaning_vi": "Vận động, thể thao",
+          "type": "từ mới",
+          "page": 46
+        },
+        {
+          "index": 35,
+          "hanzi": "喜欢",
+          "pinyin": "Xǐ huān",
+          "meaning_vi": "Thích",
+          "type": "từ mới",
+          "page": 46
+        },
+        {
+          "index": 36,
+          "hanzi": "早",
+          "pinyin": "Zǎo",
+          "meaning_vi": "Sớm",
+          "type": "từ mới",
+          "page": 46
+        },
+        {
+          "index": 37,
+          "hanzi": "晚",
+          "pinyin": "Wǎn",
+          "meaning_vi": "Muộn, trễ",
+          "type": "từ mới",
+          "page": 46
+        },
+        {
+          "index": 38,
+          "hanzi": "黑婆山",
+          "pinyin": "Hēi pó shān",
+          "meaning_vi": "Núi Bà Đen",
+          "type": "danh từ riêng",
+          "page": 46
+        },
+        {
+          "index": 39,
+          "hanzi": "龙田山",
+          "pinyin": "Lóng tián shān",
+          "meaning_vi": "Long Điền Sơn",
+          "type": "danh từ riêng",
+          "page": 46
+        },
+        {
+          "index": 40,
+          "hanzi": "杰",
+          "pinyin": "Jié",
+          "meaning_vi": "Kiệt",
+          "type": "danh từ riêng",
+          "page": 46
+        },
+        {
+          "index": 41,
+          "hanzi": "美",
+          "pinyin": "Měi",
+          "meaning_vi": "Mỹ",
+          "type": "danh từ riêng",
+          "page": 46
+        },
+        {
+          "index": 42,
+          "hanzi": "俊",
+          "pinyin": "Jùn",
+          "meaning_vi": "Tuấn",
+          "type": "danh từ riêng",
+          "page": 46
+        }
+      ]
+    },
+    {
+      "id": "bai_09",
+      "type": "bai_hoc",
+      "title_raw": "第九课Dì jiǔ kè： 你住在哪儿？   Nǐ zhù zài nǎr? / Bài 9 :   BẠN SỐNG Ở ĐÂU ?",
+      "title_cn": "Dì jiǔ kè： 你住在哪儿？",
+      "title_pinyin": "Nǐ zhù zài nǎr?",
+      "title_vi": "BẠN SỐNG Ở ĐÂU ?",
+      "page_start": 52,
+      "page_end": 59,
+      "vocab_count": 47,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "住",
+          "pinyin": "Zhù",
+          "meaning_vi": "Sống, ở, trú ngụ",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 2,
+          "hanzi": "宾馆",
+          "pinyin": "Bīn guǎn",
+          "meaning_vi": "Khách sạn",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 3,
+          "hanzi": "房间",
+          "pinyin": "Fáng jiān",
+          "meaning_vi": "Phòng",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 4,
+          "hanzi": "欢迎",
+          "pinyin": "Huān yíng",
+          "meaning_vi": "Hoan nghênh, đón chào",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 5,
+          "hanzi": "玩儿",
+          "pinyin": "Wán’r",
+          "meaning_vi": "Chơi",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 6,
+          "hanzi": "楼",
+          "pinyin": "Lóu",
+          "meaning_vi": "Lầu, tòa nhà",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 7,
+          "hanzi": "路",
+          "pinyin": "Lù",
+          "meaning_vi": "Đường",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 8,
+          "hanzi": "知道",
+          "pinyin": "Zhī dào",
+          "meaning_vi": "Biết (Biết 1 sự việc hoạc thông tin)",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 9,
+          "hanzi": "会",
+          "pinyin": "Huì",
+          "meaning_vi": "Biết (phải học,luyện tập), sẽ",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 10,
+          "hanzi": "旁边",
+          "pinyin": "Páng biān",
+          "meaning_vi": "Bên cạnh, kế bên",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 11,
+          "hanzi": "对",
+          "pinyin": "Duì",
+          "meaning_vi": "Đúng , Đối với, đối",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 12,
+          "hanzi": "错",
+          "pinyin": "Cuò",
+          "meaning_vi": "Sai",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 13,
+          "hanzi": "对面",
+          "pinyin": "Duì miàn",
+          "meaning_vi": "Đối diện",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 14,
+          "hanzi": "公园",
+          "pinyin": "Gōng yuán：",
+          "meaning_vi": "Công viên",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 15,
+          "hanzi": "邮局",
+          "pinyin": "Yóu jú",
+          "meaning_vi": "Bưu điện",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 16,
+          "hanzi": "学校",
+          "pinyin": "Xué xiào",
+          "meaning_vi": "Trường học",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 17,
+          "hanzi": "邮票",
+          "pinyin": "Yóu piào",
+          "meaning_vi": "Tem",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 18,
+          "hanzi": "多少",
+          "pinyin": "Duō shǎo",
+          "meaning_vi": "Bao nhiêu",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 19,
+          "hanzi": "多",
+          "pinyin": "Duō",
+          "meaning_vi": "Nhiều",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 20,
+          "hanzi": "少",
+          "pinyin": "Shǎo",
+          "meaning_vi": "Ít",
+          "type": "từ mới",
+          "page": 52
+        },
+        {
+          "index": 21,
+          "hanzi": "大",
+          "pinyin": "Dà",
+          "meaning_vi": "Lớn, đại",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 22,
+          "hanzi": "小",
+          "pinyin": "Xiǎo",
+          "meaning_vi": "Nhỏ, tiểu",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 23,
+          "hanzi": "层",
+          "pinyin": "Céng",
+          "meaning_vi": "Tầng, lớp",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 24,
+          "hanzi": "还没",
+          "pinyin": "Hái méi",
+          "meaning_vi": "Vẫn chưa",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 25,
+          "hanzi": "饭店",
+          "pinyin": "Fàn diàn",
+          "meaning_vi": "Quán cơm, khách sạn",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 26,
+          "hanzi": "右边",
+          "pinyin": "Yòu biān",
+          "meaning_vi": "Bên phải",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 27,
+          "hanzi": "左边",
+          "pinyin": "Zuǒ biān",
+          "meaning_vi": "Bên trái",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 28,
+          "hanzi": "前边/前面",
+          "pinyin": "Qián bian/qián miàn",
+          "meaning_vi": "Phía trước",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 29,
+          "hanzi": "后边/后面",
+          "pinyin": "Hòu bian/hòu miàn",
+          "meaning_vi": "Phía sau",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 30,
+          "hanzi": "市场",
+          "pinyin": "Shì chǎng",
+          "meaning_vi": "Chợ",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 31,
+          "hanzi": "问",
+          "pinyin": "Wèn",
+          "meaning_vi": "Hỏi",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 32,
+          "hanzi": "那儿/那里",
+          "pinyin": "Nà'r/nà lǐ",
+          "meaning_vi": "Chỗ kia, chỗ đó",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 33,
+          "hanzi": "哪儿/哪里",
+          "pinyin": "Nǎ'r/nǎ lǐ",
+          "meaning_vi": "Chỗ nào, ở đâu",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 34,
+          "hanzi": "这儿/这里",
+          "pinyin": "Zhè'r/zhè lǐ",
+          "meaning_vi": "Ở đây, chỗ này",
+          "type": "từ mới",
+          "page": 53
+        },
+        {
+          "index": 35,
+          "hanzi": "鹅油",
+          "pinyin": "É yóu",
+          "meaning_vi": "Gò Dầu",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 36,
+          "hanzi": "展鹏",
+          "pinyin": "Zhǎn péng",
+          "meaning_vi": "Trảng Bàng",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 37,
+          "hanzi": "西宁",
+          "pinyin": "Xī níng",
+          "meaning_vi": "Tây Ninh",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 38,
+          "hanzi": "阳明州",
+          "pinyin": "Yáng míng zhōu",
+          "meaning_vi": "Dương Minh Châu",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 39,
+          "hanzi": "新边",
+          "pinyin": "Xīn biān",
+          "meaning_vi": "Tân Biên",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 40,
+          "hanzi": "新州",
+          "pinyin": "Xīn zhōu",
+          "meaning_vi": "Tân Châu",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 41,
+          "hanzi": "周城",
+          "pinyin": "Zhōu chéng",
+          "meaning_vi": "Châu Thành",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 43,
+          "hanzi": "滨桥",
+          "pinyin": "Bīn qiáo",
+          "meaning_vi": "Bến Cầu",
+          "type": "danh từ riêng",
+          "page": 53
+        },
+        {
+          "index": 44,
+          "hanzi": "胡志明",
+          "pinyin": "Hú zhì míng",
+          "meaning_vi": "Hồ Chí Minh",
+          "type": "danh từ riêng",
+          "page": 54
+        },
+        {
+          "index": 45,
+          "hanzi": "市",
+          "pinyin": "Shì",
+          "meaning_vi": "Thành phố",
+          "type": "danh từ riêng",
+          "page": 54
+        },
+        {
+          "index": 46,
+          "hanzi": "省",
+          "pinyin": "Shěng",
+          "meaning_vi": "Tỉnh",
+          "type": "danh từ riêng",
+          "page": 54
+        },
+        {
+          "index": 47,
+          "hanzi": "县",
+          "pinyin": "Xiàn",
+          "meaning_vi": "Huyện",
+          "type": "danh từ riêng",
+          "page": 54
+        },
+        {
+          "index": 48,
+          "hanzi": "社",
+          "pinyin": "Shè",
+          "meaning_vi": "Xã",
+          "type": "danh từ riêng",
+          "page": 54
+        }
+      ]
+    },
+    {
+      "id": "bai_10",
+      "type": "bai_hoc",
+      "title_raw": "第十课Dì shí kè： 你最喜欢喝什么？   Nǐ zuì xǐ huān hē shénme? / Bài 10 :   BẠN THÍCH UỐNG GÌ NHẤT ?",
+      "title_cn": "Dì shí kè： 你最喜欢喝什么？",
+      "title_pinyin": "Nǐ zuì xǐ huān hē shénme?",
+      "title_vi": "BẠN THÍCH UỐNG GÌ NHẤT ?",
+      "page_start": 60,
+      "page_end": 70,
+      "vocab_count": 54,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "吃",
+          "pinyin": "Chī",
+          "meaning_vi": "Ăn",
+          "type": "từ mới",
+          "page": 60
+        },
+        {
+          "index": 2,
+          "hanzi": "火锅",
+          "pinyin": "Huǒ guō",
+          "meaning_vi": "Lẩu",
+          "type": "từ mới",
+          "page": 60
+        },
+        {
+          "index": 3,
+          "hanzi": "烤肉",
+          "pinyin": "Kǎo ròu",
+          "meaning_vi": "Thịt nướng, quay, nướng thịt",
+          "type": "từ mới",
+          "page": 60
+        },
+        {
+          "index": 4,
+          "hanzi": "米饭",
+          "pinyin": "Mǐ fàn",
+          "meaning_vi": "Cơm",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 5,
+          "hanzi": "玉米",
+          "pinyin": "Yù mǐ",
+          "meaning_vi": "Bắp, ngô",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 6,
+          "hanzi": "面条",
+          "pinyin": "Miàn tiáo",
+          "meaning_vi": "Mì sợi,",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 7,
+          "hanzi": "面包",
+          "pinyin": "Miàn bāo",
+          "meaning_vi": "Bánh mì",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 8,
+          "hanzi": "包子",
+          "pinyin": "Bāozi",
+          "meaning_vi": "Bánh bao",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 9,
+          "hanzi": "海鲜",
+          "pinyin": "Hǎi xiān",
+          "meaning_vi": "Hải sản",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 10,
+          "hanzi": "方便面",
+          "pinyin": "Fāng biàn miàn",
+          "meaning_vi": "Mì gói",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 11,
+          "hanzi": "牛奶",
+          "pinyin": "Niú nǎi",
+          "meaning_vi": "Sữa bò",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 12,
+          "hanzi": "肉",
+          "pinyin": "Ròu",
+          "meaning_vi": "Thịt",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 13,
+          "hanzi": "牛肉",
+          "pinyin": "Niú ròu",
+          "meaning_vi": "Thịt bò",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 14,
+          "hanzi": "猪肉",
+          "pinyin": "Zhū ròu",
+          "meaning_vi": "Thịt heo",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 15,
+          "hanzi": "鸡肉",
+          "pinyin": "Jī ròu",
+          "meaning_vi": "Thịt gà",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 16,
+          "hanzi": "鸡蛋",
+          "pinyin": "Jī dàn",
+          "meaning_vi": "Trứng gà",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 17,
+          "hanzi": "词典",
+          "pinyin": "Cí diǎn",
+          "meaning_vi": "Từ điển",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 18,
+          "hanzi": "喝",
+          "pinyin": "Hē",
+          "meaning_vi": "Uống",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 19,
+          "hanzi": "酒",
+          "pinyin": "Jiǔ",
+          "meaning_vi": "Rượu",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 20,
+          "hanzi": "啤酒",
+          "pinyin": "Píjiǔ",
+          "meaning_vi": "Bia",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 21,
+          "hanzi": "饮料",
+          "pinyin": "Yǐn liào",
+          "meaning_vi": "Thức uống",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 22,
+          "hanzi": "咖啡",
+          "pinyin": "Kā fēi",
+          "meaning_vi": "Cafe",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 23,
+          "hanzi": "矿泉水",
+          "pinyin": "Kuàng quán shuǐ",
+          "meaning_vi": "Nước khoáng, nước suối",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 24,
+          "hanzi": "一点",
+          "pinyin": "Yīdiǎn",
+          "meaning_vi": "1 chút, 1 tí",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 25,
+          "hanzi": "汽水",
+          "pinyin": "Qì shuǐ",
+          "meaning_vi": "Nước ngọt có ga",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 26,
+          "hanzi": "茶",
+          "pinyin": "Chá",
+          "meaning_vi": "Trà",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 27,
+          "hanzi": "椰子汁",
+          "pinyin": "Yēzi zhī",
+          "meaning_vi": "Nước dừa",
+          "type": "từ mới",
+          "page": 61
+        },
+        {
+          "index": 28,
+          "hanzi": "奶茶",
+          "pinyin": "Nǎi chá",
+          "meaning_vi": "Trà sữa",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 29,
+          "hanzi": "橙汁",
+          "pinyin": "Chéng zhī",
+          "meaning_vi": "Cam ép",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 30,
+          "hanzi": "果汁",
+          "pinyin": "Guǒ zhī",
+          "meaning_vi": "Nước ép",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 31,
+          "hanzi": "冰沙",
+          "pinyin": "Bīng shā",
+          "meaning_vi": "Sinh tố",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 32,
+          "hanzi": "一点",
+          "pinyin": "Yīdiǎn",
+          "meaning_vi": "1 chút, 1 tí",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 33,
+          "hanzi": "一...就",
+          "pinyin": "yī ... jiù",
+          "meaning_vi": "Vừa, hễ ... thì ....",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 34,
+          "hanzi": "要",
+          "pinyin": "Yào",
+          "meaning_vi": "Cần, phải, muốn (buộc phải thực hiện)",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 35,
+          "hanzi": "想",
+          "pinyin": "Xiǎng",
+          "meaning_vi": "Ý nghĩ, nhớ, ý muốn",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 36,
+          "hanzi": "钱",
+          "pinyin": "Qián",
+          "meaning_vi": "Tiền",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 37,
+          "hanzi": "越南盾/越盾",
+          "pinyin": "Yuè nán dùn/yuè dùn",
+          "meaning_vi": "VNĐ",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 38,
+          "hanzi": "人民币",
+          "pinyin": "Rén mín bì",
+          "meaning_vi": "Nhân dân tệ",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 39,
+          "hanzi": "元/块",
+          "pinyin": "Yuán/kuài",
+          "meaning_vi": "Đồng (Đơn vị tiền tệ của TQ)",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 40,
+          "hanzi": "美元",
+          "pinyin": "Měi yuán",
+          "meaning_vi": "Đô la Mỹ (USD)",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 41,
+          "hanzi": "瓶",
+          "pinyin": "Píng",
+          "meaning_vi": "Bình, lọ, chai",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 42,
+          "hanzi": "杯",
+          "pinyin": "Bēi",
+          "meaning_vi": "Ly, cốc",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 43,
+          "hanzi": "可以",
+          "pinyin": "Kě yǐ",
+          "meaning_vi": "Có thể (khẳng định)",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 44,
+          "hanzi": "能/可能",
+          "pinyin": "Néng/kě néng",
+          "meaning_vi": "Có thể, khả năng (phán đoán)",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 45,
+          "hanzi": "最.........",
+          "pinyin": "Zuì",
+          "meaning_vi": ".... Nhất, đứng đầu",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 46,
+          "hanzi": "给",
+          "pinyin": "Gěi",
+          "meaning_vi": "Cho, giao cho, đưa cho",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 47,
+          "hanzi": "本",
+          "pinyin": "Běn",
+          "meaning_vi": "Lượng từ của cuốn sách, tập, vở...",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 48,
+          "hanzi": "水",
+          "pinyin": "Shuǐ",
+          "meaning_vi": "Nước",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 49,
+          "hanzi": "换",
+          "pinyin": "Huàn",
+          "meaning_vi": "Đổi, thay, trao đổi",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 50,
+          "hanzi": "洗澡",
+          "pinyin": "Xǐ zǎo",
+          "meaning_vi": "Tắm",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 51,
+          "hanzi": "天",
+          "pinyin": "Tiān",
+          "meaning_vi": "Ngày, trời",
+          "type": "từ mới",
+          "page": 62
+        },
+        {
+          "index": 52,
+          "hanzi": "每天",
+          "pinyin": "Měi tiān",
+          "meaning_vi": "Mỗi ngày",
+          "type": "từ mới",
+          "page": 63
+        },
+        {
+          "index": 53,
+          "hanzi": "办公室",
+          "pinyin": "Bàn gōng shì",
+          "meaning_vi": "Văn phòng",
+          "type": "từ mới",
+          "page": 63
+        },
+        {
+          "index": 54,
+          "hanzi": "车间",
+          "pinyin": "Chē jiān",
+          "meaning_vi": "Xưởng, nhà xưởng",
+          "type": "từ mới",
+          "page": 63
+        }
+      ]
+    },
+    {
+      "id": "bai_11",
+      "type": "bai_hoc",
+      "title_raw": "第十一课Dì shí yī kè：你想买什么水果？Nǐ xiǎng mǎi shénme shuǐguǒ? / Bài 11 :   BẠN MUỐN MUA TRÁI CÂY GÌ?",
+      "title_cn": "Dì shí yī kè：你想买什么水果？Nǐ xiǎng mǎi shénme shuǐguǒ?",
+      "title_pinyin": "",
+      "title_vi": "BẠN MUỐN MUA TRÁI CÂY GÌ?",
+      "page_start": 71,
+      "page_end": 79,
+      "vocab_count": 56,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "水果",
+          "pinyin": "Shuǐ guǒ",
+          "meaning_vi": "Trái cây",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 2,
+          "hanzi": "果园",
+          "pinyin": "Guǒ yuán",
+          "meaning_vi": "Vườn trái cây",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 3,
+          "hanzi": "苹果",
+          "pinyin": "Píng guǒ",
+          "meaning_vi": "Quả táo, apple",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 4,
+          "hanzi": "橘子",
+          "pinyin": "Júzi",
+          "meaning_vi": "Quýt",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 5,
+          "hanzi": "橙子",
+          "pinyin": "Chéng zi",
+          "meaning_vi": "Cam",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 6,
+          "hanzi": "芒果",
+          "pinyin": "Máng guǒ",
+          "meaning_vi": "Xoài",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 7,
+          "hanzi": "草莓",
+          "pinyin": "Cǎo méi",
+          "meaning_vi": "Dâu tây",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 8,
+          "hanzi": "葡萄",
+          "pinyin": "Pú táo",
+          "meaning_vi": "Nho",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 9,
+          "hanzi": "找",
+          "pinyin": "Zhǎo",
+          "meaning_vi": "Tìm, kiếm, thối tiền",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 10,
+          "hanzi": "西瓜",
+          "pinyin": "Xī guā",
+          "meaning_vi": "Dưa hấu",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 11,
+          "hanzi": "榴莲",
+          "pinyin": "Liú lián",
+          "meaning_vi": "Sầu riêng",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 12,
+          "hanzi": "公斤",
+          "pinyin": "Gōng jīn",
+          "meaning_vi": "Kg",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 13,
+          "hanzi": "还",
+          "pinyin": "Hái",
+          "meaning_vi": "Vẫn, còn, hơn",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 14,
+          "hanzi": "还有",
+          "pinyin": "Hái yǒu",
+          "meaning_vi": "Vẫn còn",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 15,
+          "hanzi": "旅游/旅行",
+          "pinyin": "Lǚ yóu/lǚ xíng",
+          "meaning_vi": "Du lịch",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 16,
+          "hanzi": "别的 (其他)",
+          "pinyin": "Bié de (qí tā)",
+          "meaning_vi": "Khác, cái khác",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 17,
+          "hanzi": "尝",
+          "pinyin": "Cháng",
+          "meaning_vi": "Nếm, nếm thử, đã từng",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 18,
+          "hanzi": "种",
+          "pinyin": "Zhǒng",
+          "meaning_vi": "Loại, thứ",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 19,
+          "hanzi": "贵",
+          "pinyin": "Guì",
+          "meaning_vi": "Mắc, đắt",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 20,
+          "hanzi": "便宜",
+          "pinyin": "Piányi",
+          "meaning_vi": "Rẻ",
+          "type": "từ mới",
+          "page": 71
+        },
+        {
+          "index": 21,
+          "hanzi": "离",
+          "pinyin": "Lí",
+          "meaning_vi": "Cách, xa cách",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 22,
+          "hanzi": "件",
+          "pinyin": "Jiàn",
+          "meaning_vi": "Lượng từ (chiếc, cái)",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 23,
+          "hanzi": "衣服",
+          "pinyin": "Yīfu",
+          "meaning_vi": "Quần áo",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 24,
+          "hanzi": "毛衣",
+          "pinyin": "Máo yī",
+          "meaning_vi": "Áo len",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 25,
+          "hanzi": "短",
+          "pinyin": "Duǎn",
+          "meaning_vi": "Ngắn",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 26,
+          "hanzi": "长",
+          "pinyin": "Cháng",
+          "meaning_vi": "Dài",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 27,
+          "hanzi": "鞋子",
+          "pinyin": "Xiézi",
+          "meaning_vi": "Giày",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 28,
+          "hanzi": "就",
+          "pinyin": "Jiù",
+          "meaning_vi": "Liền, ngay, sẽ, đã, thì, chính là",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 29,
+          "hanzi": "接",
+          "pinyin": "Jiē",
+          "meaning_vi": "Đón, nhận, tiếp nhận",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 30,
+          "hanzi": "外套/外衣",
+          "pinyin": "Wài tào/wài yī",
+          "meaning_vi": "Áo khoác",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 31,
+          "hanzi": "冷",
+          "pinyin": "Lěng",
+          "meaning_vi": "Lạnh",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 32,
+          "hanzi": "热",
+          "pinyin": "Rè",
+          "meaning_vi": "Nóng",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 33,
+          "hanzi": "下雨",
+          "pinyin": "Xià yǔ",
+          "meaning_vi": "Mưa",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 34,
+          "hanzi": "雨衣",
+          "pinyin": "Yǔ yī",
+          "meaning_vi": "Áo mưa",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 35,
+          "hanzi": "怎么样",
+          "pinyin": "Zěnme yàng",
+          "meaning_vi": "Như thế nào",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 36,
+          "hanzi": "试",
+          "pinyin": "Shì",
+          "meaning_vi": "Thử, thí nghiệm",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 37,
+          "hanzi": "及了",
+          "pinyin": "Jí le",
+          "meaning_vi": "Vô cùng, cực",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 38,
+          "hanzi": "小姐",
+          "pinyin": "Xiǎo jiě",
+          "meaning_vi": "Tiểu thư, cô, chị",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 39,
+          "hanzi": "发",
+          "pinyin": "Fā",
+          "meaning_vi": "Phát, gửi đi",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 40,
+          "hanzi": "短信",
+          "pinyin": "Duǎn xìn",
+          "meaning_vi": "Tin nhắn",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 41,
+          "hanzi": "穿",
+          "pinyin": "Chuān",
+          "meaning_vi": "Mặc, mang, đeo",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 42,
+          "hanzi": "脱",
+          "pinyin": "Tuō",
+          "meaning_vi": "Cởi ra, thoát ra, bỏ đi, rụng,...",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 43,
+          "hanzi": "谈话",
+          "pinyin": "Tán huà",
+          "meaning_vi": "Nói chuyện, tán gẫu",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 44,
+          "hanzi": "远",
+          "pinyin": "Yuǎn",
+          "meaning_vi": "Xa",
+          "type": "từ mới",
+          "page": 72
+        },
+        {
+          "index": 45,
+          "hanzi": "近",
+          "pinyin": "Jìn",
+          "meaning_vi": "Gần",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 46,
+          "hanzi": "方便",
+          "pinyin": "Fāng biàn",
+          "meaning_vi": "Thuận tiện, thuận lợi",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 47,
+          "hanzi": "里/里边/里面",
+          "pinyin": "Lǐ/lǐ bian/lǐ miàn",
+          "meaning_vi": "Trong, bên trong",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 48,
+          "hanzi": "外/外边",
+          "pinyin": "Wài/wàibian",
+          "meaning_vi": "Ngoài, bên ngoài",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 49,
+          "hanzi": "好吃",
+          "pinyin": "Hǎo chī",
+          "meaning_vi": "Ngon",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 50,
+          "hanzi": "好喝",
+          "pinyin": "Hǎo hē",
+          "meaning_vi": "Ngon (uống)",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 51,
+          "hanzi": "好看",
+          "pinyin": "Hǎo kàn",
+          "meaning_vi": "Đẹp, xinh đẹp",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 52,
+          "hanzi": "当然",
+          "pinyin": "Dāng rán",
+          "meaning_vi": "Đương nhiên",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 53,
+          "hanzi": "天气",
+          "pinyin": "Tiān qì",
+          "meaning_vi": "Thời tiết",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 54,
+          "hanzi": "裤子",
+          "pinyin": "Kùzi",
+          "meaning_vi": "Quần",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 55,
+          "hanzi": "所以",
+          "pinyin": "Suǒ yǐ",
+          "meaning_vi": "Vì vậy",
+          "type": "từ mới",
+          "page": 73
+        },
+        {
+          "index": 56,
+          "hanzi": "外套/外衣",
+          "pinyin": "Wài tào/wài yī",
+          "meaning_vi": "Áo khoác",
+          "type": "từ mới",
+          "page": 73
+        }
+      ]
+    },
+    {
+      "id": "bài_ngữ_pháp_tổng_hợp",
+      "type": "tong_on_ngu_phap",
+      "title_raw": "BÀI NGỮ PHÁP TỔNG HỢP",
+      "title_cn": "语法",
+      "title_pinyin": "Yǔfǎ",
+      "title_vi": "BÀI NGỮ PHÁP TỔNG HỢP",
+      "page_start": 80,
+      "page_end": 86,
+      "vocab_count": 41,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "觉得",
+          "pinyin": "Jué dé",
+          "meaning_vi": "Cảm thấy",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 2,
+          "hanzi": "先",
+          "pinyin": "Xiān...",
+          "meaning_vi": ".....Trước",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 3,
+          "hanzi": "教",
+          "pinyin": "Jiào",
+          "meaning_vi": "Dạy",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 4,
+          "hanzi": "饿",
+          "pinyin": "È",
+          "meaning_vi": "Đói",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 5,
+          "hanzi": "饱",
+          "pinyin": "Bǎo",
+          "meaning_vi": "No",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 6,
+          "hanzi": "新",
+          "pinyin": "Xīn",
+          "meaning_vi": "Mới",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 7,
+          "hanzi": "旧",
+          "pinyin": "Jiù",
+          "meaning_vi": "Cũ",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 8,
+          "hanzi": "渴",
+          "pinyin": "Kě",
+          "meaning_vi": "Khát",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 9,
+          "hanzi": "留学",
+          "pinyin": "Liú xué",
+          "meaning_vi": "Du học",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 10,
+          "hanzi": "留学生",
+          "pinyin": "Liú xué shēng",
+          "meaning_vi": "Lưu học sinh",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 11,
+          "hanzi": "年级",
+          "pinyin": "Nián jí",
+          "meaning_vi": "Lớp",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 12,
+          "hanzi": "拿",
+          "pinyin": "Ná",
+          "meaning_vi": "Lấy, cầm, đoạt, tóm",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 13,
+          "hanzi": "取",
+          "pinyin": "Qǔ",
+          "meaning_vi": "Lấy, đạt đến",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 14,
+          "hanzi": "取钱/取款",
+          "pinyin": "Qǔ qián/qǔ kuǎn",
+          "meaning_vi": "Rút tiền",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 15,
+          "hanzi": "容易",
+          "pinyin": "Róng yì",
+          "meaning_vi": "Dễ",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 16,
+          "hanzi": "难",
+          "pinyin": "Nán",
+          "meaning_vi": "Khó",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 17,
+          "hanzi": "语法",
+          "pinyin": "Yǔ fǎ",
+          "meaning_vi": "Ngữ pháp",
+          "type": "từ mới",
+          "page": 80
+        },
+        {
+          "index": 18,
+          "hanzi": "语言",
+          "pinyin": "Yǔ yán",
+          "meaning_vi": "Ngôn ngữ",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 19,
+          "hanzi": "外语",
+          "pinyin": "Wài yǔ",
+          "meaning_vi": "Ngoại ngữ",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 20,
+          "hanzi": "汉子",
+          "pinyin": "Hànzi",
+          "meaning_vi": "Chữ Hán",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 21,
+          "hanzi": "大学",
+          "pinyin": "Dà xué",
+          "meaning_vi": "Đại học,",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 22,
+          "hanzi": "大专",
+          "pinyin": "Dà zhuān",
+          "meaning_vi": "Cao đẳng",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 23,
+          "hanzi": "中专",
+          "pinyin": "Zhōng zhuān",
+          "meaning_vi": "Trung cấp",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 24,
+          "hanzi": "高中",
+          "pinyin": "Gāo zhōng",
+          "meaning_vi": "Cấp 3, THPT",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 25,
+          "hanzi": "初中",
+          "pinyin": "Chū zhōng",
+          "meaning_vi": "Cấp 2, THCS",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 26,
+          "hanzi": "小学",
+          "pinyin": "Xiǎo xué",
+          "meaning_vi": "Tiểu học",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 27,
+          "hanzi": "遍",
+          "pinyin": "Biàn",
+          "meaning_vi": "Lần",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 28,
+          "hanzi": "专业",
+          "pinyin": "Zhuān yè",
+          "meaning_vi": "Chuyên ngành, chuyên nghiệp, môn",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 29,
+          "hanzi": "同学",
+          "pinyin": "Tóng xué",
+          "meaning_vi": "Bạn học",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 30,
+          "hanzi": "同事",
+          "pinyin": "Tóngshì",
+          "meaning_vi": "Đồng nghiệp",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 31,
+          "hanzi": "走/去",
+          "pinyin": "Zǒu/qù",
+          "meaning_vi": "Đi",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 32,
+          "hanzi": "作业",
+          "pinyin": "Zuò yè",
+          "meaning_vi": "Bài tập",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 33,
+          "hanzi": "碗",
+          "pinyin": "Wǎn",
+          "meaning_vi": "Bát, chén",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 34,
+          "hanzi": "快乐",
+          "pinyin": "Kuài lè",
+          "meaning_vi": "Vui sướng, hạnh phúc",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 35,
+          "hanzi": "唱歌",
+          "pinyin": "Chàng gē",
+          "meaning_vi": "Hát",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 36,
+          "hanzi": "蛋糕",
+          "pinyin": "Dàn gāo",
+          "meaning_vi": "Bánh ngọt, bánh kem",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 37,
+          "hanzi": "懂",
+          "pinyin": "Dǒng",
+          "meaning_vi": "Hiểu",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 38,
+          "hanzi": "无聊",
+          "pinyin": "Wú liáo",
+          "meaning_vi": "Vô vị, nhàm chán, buồn tẻ",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 39,
+          "hanzi": "开心",
+          "pinyin": "Kāi xīn",
+          "meaning_vi": "Vui vẻ",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 40,
+          "hanzi": "爱好",
+          "pinyin": "Ài hào",
+          "meaning_vi": "Sở thích",
+          "type": "từ mới",
+          "page": 81
+        },
+        {
+          "index": 41,
+          "hanzi": "怎么",
+          "pinyin": "zěnme",
+          "meaning_vi": "Thế nào, làm sao?",
+          "type": "từ mới",
+          "page": 81
+        }
+      ]
+    },
+    {
+      "id": "bai_12",
+      "type": "bai_hoc",
+      "title_raw": "第十二课 Dì shí'èr kè：我找到我的车了！Wǒ zhǎo dào wǒ de chē le ! / Bài 12 : TÔI TÌM ĐƯỢC XE CỦA TÔI RỒI!",
+      "title_cn": "Dì shí'èr kè：我找到我的车了！Wǒ zhǎo dào wǒ de chē le !",
+      "title_pinyin": "",
+      "title_vi": "TÔI TÌM ĐƯỢC XE CỦA TÔI RỒI!",
+      "page_start": 87,
+      "page_end": 98,
+      "vocab_count": 57,
+      "vocabulary": [
+        {
+          "index": 1,
+          "hanzi": "出租车",
+          "pinyin": "Chū zū chē",
+          "meaning_vi": "Xe taxi",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 2,
+          "hanzi": "打的",
+          "pinyin": "Dǎ di",
+          "meaning_vi": "Gọi taxi",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 3,
+          "hanzi": "自行车",
+          "pinyin": "Zì xíng chē",
+          "meaning_vi": "Xe đạp",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 4,
+          "hanzi": "摩托车",
+          "pinyin": "Mó tuō chē",
+          "meaning_vi": "Xe máy",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 5,
+          "hanzi": "公共汽车",
+          "pinyin": "Gōng gòng qì chē",
+          "meaning_vi": "Xe buýt",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 6,
+          "hanzi": "汽车",
+          "pinyin": "Qì chē",
+          "meaning_vi": "Xe hơi, ô tô",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 7,
+          "hanzi": "骑",
+          "pinyin": "Qí",
+          "meaning_vi": "Cưỡi, đi",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 8,
+          "hanzi": "车",
+          "pinyin": "chē",
+          "meaning_vi": "Xe",
+          "type": "từ mới",
+          "page": 87
+        },
+        {
+          "index": 9,
+          "hanzi": "开车",
+          "pinyin": "Kāi chē",
+          "meaning_vi": "Láy xe, chạy xe",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 10,
+          "hanzi": "坐",
+          "pinyin": "Zuò",
+          "meaning_vi": "Ngồi, đi, đáp",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 11,
+          "hanzi": "站",
+          "pinyin": "Zhàn",
+          "meaning_vi": "Đứng, trạm, bến, ga",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 12,
+          "hanzi": "辆",
+          "pinyin": "Liàng",
+          "meaning_vi": "Chiếc (lượng từ của xe)",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 13,
+          "hanzi": "开",
+          "pinyin": "Kāi",
+          "meaning_vi": "Mở, mở ra",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 14,
+          "hanzi": "关",
+          "pinyin": "Guān",
+          "meaning_vi": "Đóng, tắt",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 15,
+          "hanzi": "售票员",
+          "pinyin": "Shòu piào yuán",
+          "meaning_vi": "Người bán vé",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 16,
+          "hanzi": "安霜",
+          "pinyin": "ān shuāng",
+          "meaning_vi": "An Sương",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 17,
+          "hanzi": "到",
+          "pinyin": "Dào",
+          "meaning_vi": "Đến",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 18,
+          "hanzi": "颜色",
+          "pinyin": "Yán sè",
+          "meaning_vi": "Màu sắc",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 19,
+          "hanzi": "白色",
+          "pinyin": "Bái sè",
+          "meaning_vi": "Màu trắng",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 20,
+          "hanzi": "黑色",
+          "pinyin": "Hēi sè",
+          "meaning_vi": "Màu đen",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 21,
+          "hanzi": "红色",
+          "pinyin": "Hóng sè",
+          "meaning_vi": "Màu đỏ",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 22,
+          "hanzi": "黄色",
+          "pinyin": "Huáng sè",
+          "meaning_vi": "Màu vàng",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 23,
+          "hanzi": "蓝色",
+          "pinyin": "Lán sè",
+          "meaning_vi": "Xanh lam",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 24,
+          "hanzi": "绿色",
+          "pinyin": "Lǜ sè",
+          "meaning_vi": "Xanh lục, lá",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 25,
+          "hanzi": "还是",
+          "pinyin": "Hái shì",
+          "meaning_vi": "Hay là, hoặc, vẫn, cứ",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 26,
+          "hanzi": "慢",
+          "pinyin": "Màn",
+          "meaning_vi": "Chậm, từ từ",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 27,
+          "hanzi": "红绿灯",
+          "pinyin": "hóng lǜ dēng",
+          "meaning_vi": "Đèn giao thông, đèn xanh đỏ",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 28,
+          "hanzi": "本",
+          "pinyin": "Běn",
+          "meaning_vi": "(lượng từ) cuốn, quyển, bản",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 29,
+          "hanzi": "举行",
+          "pinyin": "Jǔ xíng",
+          "meaning_vi": "Tổ chức",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 30,
+          "hanzi": "晚会",
+          "pinyin": "Wǎn huì",
+          "meaning_vi": "Buổi tiệc",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 31,
+          "hanzi": "张",
+          "pinyin": "Zhāng",
+          "meaning_vi": "(lượg từ)tấm, tờ, chiếc,(vật mỏng)",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 32,
+          "hanzi": "参加",
+          "pinyin": "Cān jiā",
+          "meaning_vi": "Tham gia",
+          "type": "từ mới",
+          "page": 88
+        },
+        {
+          "index": 33,
+          "hanzi": "带",
+          "pinyin": "Dài",
+          "meaning_vi": "Mang, dẫn, đem",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 34,
+          "hanzi": "数",
+          "pinyin": "Shù",
+          "meaning_vi": "Số",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 35,
+          "hanzi": "数",
+          "pinyin": "Shǔ",
+          "meaning_vi": "Đếm",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 36,
+          "hanzi": "时间",
+          "pinyin": "Shí jiān",
+          "meaning_vi": "Thời gian",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 37,
+          "hanzi": "花",
+          "pinyin": "Huā",
+          "meaning_vi": "Tiêu (tiền), mất (thời gian)",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 38,
+          "hanzi": "快",
+          "pinyin": "Kuài",
+          "meaning_vi": "Nhanh, mau, ngay, sắp",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 39,
+          "hanzi": "久",
+          "pinyin": "Jiǔ",
+          "meaning_vi": "Lâu",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 40,
+          "hanzi": "营业员",
+          "pinyin": "Yíng yè yuán",
+          "meaning_vi": "Nhân viên cửa hàng",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 41,
+          "hanzi": "号码",
+          "pinyin": "Hào mǎ",
+          "meaning_vi": "Số, mã số",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 42,
+          "hanzi": "借",
+          "pinyin": "Jiè",
+          "meaning_vi": "Mượn",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 43,
+          "hanzi": "还",
+          "pinyin": "Huán",
+          "meaning_vi": "Trả, hoàn trả",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 44,
+          "hanzi": "票",
+          "pinyin": "Piào",
+          "meaning_vi": "Vé, phiếu",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 45,
+          "hanzi": "送",
+          "pinyin": "Sòng",
+          "meaning_vi": "Tặng, đưa, tiễn, giao",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 46,
+          "hanzi": "这样",
+          "pinyin": "Zhè yàng",
+          "meaning_vi": "Như vậy, như thế",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 47,
+          "hanzi": "礼物",
+          "pinyin": "Lǐwù",
+          "meaning_vi": "Quà",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 48,
+          "hanzi": "师范",
+          "pinyin": "Shī fàn",
+          "meaning_vi": "Sư phạm",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 49,
+          "hanzi": "寄",
+          "pinyin": "jì",
+          "meaning_vi": "Gửi, gởi",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 50,
+          "hanzi": "忘记/忘",
+          "pinyin": "Wàng jì/ wàng",
+          "meaning_vi": "Quên, quên mất",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 51,
+          "hanzi": "记得/记",
+          "pinyin": "Jì dé/jì",
+          "meaning_vi": "Nhớ, ghi nhớ, ghi lại",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 52,
+          "hanzi": "十字路口",
+          "pinyin": "Shí zì lù kǒu",
+          "meaning_vi": "Ngã tư",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 53,
+          "hanzi": "拐/转",
+          "pinyin": "Guǎi/zhuǎn",
+          "meaning_vi": "Rẻ, quẹo",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 54,
+          "hanzi": "往",
+          "pinyin": "Wǎng",
+          "meaning_vi": "Hướng về",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 55,
+          "hanzi": "往前走",
+          "pinyin": "Wǎng qián zǒu",
+          "meaning_vi": "Đi về phía trước",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 56,
+          "hanzi": "一直走",
+          "pinyin": "Yī zhí zǒu",
+          "meaning_vi": "Đi thẳng",
+          "type": "từ mới",
+          "page": 89
+        },
+        {
+          "index": 57,
+          "hanzi": "祝",
+          "pinyin": "Zhù",
+          "meaning_vi": "Chúc",
+          "type": "từ mới",
+          "page": 90
+        }
+      ]
+    }
+  ]
+}

@@ -9,7 +9,8 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             val prefs = context.getSharedPreferences("StudyStatePrefs", Context.MODE_PRIVATE)
-            val lockEnabled = prefs.getBoolean("lockscreen_enabled", false)
+            val lockEnabled = prefs.getBoolean("lockscreen_enabled", false) ||
+                prefs.getBoolean("passive_notif_enabled", false)
             if (lockEnabled) {
                 val serviceIntent = Intent(context, LockscreenService::class.java)
                 try {
